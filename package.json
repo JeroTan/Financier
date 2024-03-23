@@ -1,0 +1,26 @@
+{
+  "name": "financier",
+  "version": "1.0.0",
+  "description": "Personal Finance management app",
+  "main": "backend/index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "serve": "node backend/index.js",
+    "migrate": "node backend/migrations/runner.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JeroTan/Financier.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/JeroTan/Financier/issues"
+  },
+  "homepage": "https://github.com/JeroTan/Financier#readme",
+  "dependencies": {
+    "express": "^4.19.1",
+    "sqlite3": "^5.1.7"
+  }
+}
