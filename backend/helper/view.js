@@ -1,7 +1,11 @@
 import { readFile, readFileSync } from 'fs';
+import path from "path";
+
+//Data Structure
+const intialPath =  'public/';
 
 export function view(filePath, res){
-    readFile(filePath, 'utf-8', (err, data)=>{
+    readFile( path.resolve(intialPath+filePath) , 'utf-8', (err, data)=>{
         res.send(data);
     });
 }
