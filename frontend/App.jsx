@@ -1,5 +1,9 @@
+import React from "react";
 import "./App.css";
+import Routing from "./gatekeeper/Routing";
 
 export default ()=>{
-    return <h1 className="p-5">Helloffffffff</h1>
+    return <React.StrictMode>
+        <Routing />
+    </React.StrictMode>
 }
