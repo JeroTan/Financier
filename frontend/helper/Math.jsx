@@ -24,9 +24,9 @@ export function removeDecimal(number){
     return result;
 }
 
-export function adjustDecimal(number, condition = true){
-    const placeValue = typeof condition === "boolean" ? 2 : Number(condition);
-    let result = placeValue.toFixed(placeValue);
+export function adjustDecimal(number, addPlaceValue = true){
+    const placeValue = typeof addPlaceValue === "boolean" ? 2 : Number(addPlaceValue);
+    let result = number.toFixed(placeValue);
     if(placeValue < result.split(".")[1].length){
         result = result.split(".");
         result = `${result[0]}.${result[1].slice(placeValue)}`;

@@ -1,5 +1,10 @@
-import {Login} from "./Login"
+import PagePlate from "../utilities/PagePlate";
+import {Login} from "./Login";
 
 export const Main = ()=>{
-    return <Login />
+
+    return <PagePlate>
+        <Login />
+       
+    </PagePlate>
 }

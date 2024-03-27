@@ -1,3 +1,44 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+body::-webkit-scrollbar-track { /* The Body not the Slider */
+    padding: 2px 0;
+    @apply bg-slate-700 ;
+}
+
+body::-webkit-scrollbar { /* How Wide the body */
+    border-radius: 10px;
+    width: 10px;
+}
+
+body::-webkit-scrollbar-thumb { /* The slider */
+    @apply bg-yellow-500 rounded-full outline outline-1 ;
+}
+
+.custom_scroll::-webkit-scrollbar-track{
+    padding: 2px 0;
+    @apply bg-slate-700;
+}
+.custom_scroll::-webkit-scrollbar {
+    border-radius: 10px;
+    width: 10px;
+}
+
+.custom_scroll::-webkit-scrollbar-thumb {
+    @apply bg-yellow-500 rounded-full outline outline-1 ;
+}
+html { height:100%; }
+
+
+.my-header-big{
+    @apply text-4xl font-bold text-yellow-400;
+}
+
+.my-field{
+    @apply bg-transparent outline-none stroke-none border-x-0 border-t-0 focus:border-b-4 focus:border-b-zinc-200 hover:border-b-zinc-200 border-b-2 px-1 pb-1 border-b-zinc-500 delay-100 placeholder:text-slate-400;
+}
+
+.my-main-btn-big{
+    @apply px-5 py-2 bg-yellow-400 rounded-full text-zinc-900 font-semibold hover:bg-yellow-500;
+}
