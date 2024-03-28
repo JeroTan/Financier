@@ -1,5 +1,7 @@
-import { useReducer } from "react"
+import { GoogleLogin } from "@react-oauth/google";
+import { useEffect, useMemo, useReducer } from "react"
 import { Link } from "react-router-dom"
+import { ApiLoginWithGoogle } from "../helper/API";
 
 export const Login = ()=>{
 
@@ -10,12 +12,10 @@ export const Login = ()=>{
             <div className="mb-12"></div>
             <LoginForm />            
         </div>
-        <div className=" text-center text-yellow-500/50 font-thin">
+        <div className="mt-2 text-center text-yellow-500/50 font-thin">
             Other Signing Option
         </div>
-        <button className="w-96 py-2 bg-slate-300 hover:bg-slate-200 rounded-lg text-zinc-900 font-semibold ">
-            Login with Google
-        </button>
+        <GoogleSignIn />
     </main>
 }
 
@@ -42,4 +42,16 @@ function LoginForm(){
             <button className="my-main-btn-big">Login</button>
         </div>
     </form>
+}
+
+function GoogleSignIn(){
+    
+    return <GoogleLogin
+        onSuccess={r => {
+            ApiLoginWithGoogle(r.credential).then(x=>console.log(x));
+        }}
+        onError={() => {
+            console.log('Login Failed');
+        }}
+    />;
 }

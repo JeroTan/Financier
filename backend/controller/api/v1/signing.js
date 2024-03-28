@@ -1,4 +1,4 @@
-import { view } from "../../helper/view.js";
+import { view } from "../../../helper/view.js";
 /**
  * Every Callback here must be or optional if you want to have req and res
  * req means request or the requesting data or payload
@@ -6,8 +6,9 @@ import { view } from "../../helper/view.js";
  */
 
 
+
 export default {
-    index: (req, res)=>{
-        view('index.html', res);
+    loginGoogle: (req, res)=>{
+        console.log(req, res);
     }
 }
