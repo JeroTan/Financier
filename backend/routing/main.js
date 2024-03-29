@@ -21,7 +21,6 @@ const apiVersionIndex = [
 ];
 const CORS = {
     origin: function (origin, callback) {
-        console.log(origin);
         const allowedOrigin = ["http://localhost:8000", "http://localhost:8001"];
         if( allowedOrigin.includes(origin) ){
             return callback(null, origin);
@@ -67,8 +66,10 @@ function webRoutes(){
 
 //Define the routes of that will be run to return data.
 function apiRoutes(){
+    const basicMid = [cors(CORS), express.json(), express.urlencoded()];
+
     //Signing
-    apiPOST('/login_google', Signing.loginGoogle, [cors(CORS)]);
+    apiPOST('/login_google', Signing.loginGoogle, [...basicMid]);
 }
 //******************* DEFINE ROUTES HERE ************************/
 
@@ -88,8 +89,8 @@ function routingTemplate(requestType, withPreLink = false){ //Callback must acce
     return (route, callback, middlewares=[])=>{
         if( Array.isArray(withPreLink) ){
             for(let i = 0; i < withPreLink.length; i++){
-                app.options(withPreLink[i]+route, cors(), callback);
-                app[requestType](withPreLink[i]+route, cors(), callback);
+                app.options(withPreLink[i]+route, ...middlewares, callback);
+                app[requestType](withPreLink[i]+route, ...middlewares, callback);
             }
             return;
         }

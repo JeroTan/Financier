@@ -3,14 +3,22 @@ import { loginTokenTable } from "./_02_createLoginToken.js";
 import { financeTable } from "./_03_createFinance.js";
 
 //Import and call the migrations here
-const tables = [
-    accountTable,
+let tables = [
     loginTokenTable,
     financeTable,
+    accountTable,
 ];
 
 
 //InHouseRunner
 tables.forEach(x=>{
-    x.create();
-})
+    dropThis(x);
+});
+function dropThis(table){
+    table.drop();
+    table.exist((cap)=>{
+       if(cap){
+            dropThis(table);
+       } 
+    })
+}

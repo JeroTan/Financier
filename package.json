@@ -10,6 +10,7 @@
     "dev": "webpack-dev-server --mode development",
     "build": "webpack",
     "migrate": "node backend/migrations/runner.js",
+    "migrate_drop": "node backend/migrations/dropper.js",
     "applyProd": "npm install --only=prod"
   },
   "repository": {
@@ -24,10 +25,14 @@
   "homepage": "https://github.com/JeroTan/Financier#readme",
   "dependencies": {
     "axios": "^1.6.8",
+    "bcrypt": "^5.1.1",
     "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
     "express": "^4.19.1",
     "express-list-endpoints": "^6.0.0",
+    "jsonwebtoken": "^9.0.2",
     "jwt-decode": "^4.0.0",
+    "knex": "^3.1.0",
     "sqlite3": "^5.1.7"
   },
   "devDependencies": {
