@@ -16,8 +16,8 @@ navigate(`${newRecord.id}`); means the current page or routes but changes only i
 
 */
 
-import { useContext, useEffect, useLayoutEffect, useMemo, useState } from "react";
-import { Navigate } from "react-router-dom";
+import { useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { Navigate, useLocation } from "react-router-dom";
 import { LoadingPage } from "../utilities/Placeholder";
 import { GlobalConfigContext } from "../utilities/GlobalConfig";
 import PagePlate from "../utilities/PagePlate";
@@ -26,6 +26,7 @@ import PagePlate from "../utilities/PagePlate";
 export default (props)=>{
     //Global
     const [gConfig, gConfigCast] = useContext(GlobalConfigContext);
+    const location = useLocation();
 
     //Structure
     const element = props.element;
@@ -60,13 +61,15 @@ export default (props)=>{
         resultSet:resultSet,
         element:element,
         loadingUpdate: (x)=>gConfigCast({run:"updatePageLoadingPercent", val:x}),
-    }), [])
+    }), [location.pathname]);
     
     //Prepare the Middleware
     useEffect(()=>{
+        resultSet(false);
         helpers.loadingUpdate(0);
         guardChecking(guards, helpers); 
-    }, []);
+        helpers.loadingUpdate(false);
+    }, [location.pathname]);
 
 
     //Show the result of middleware and not if it is still processing.
@@ -83,7 +86,7 @@ export default (props)=>{
 
 function guardChecking(guards, helpers, i=0){
     if(!guards[i]){ //Check if the guards run out of specified elements
-        helpers.resultSet(helpers.element);
+        helpers.resultSet(helpers.element); //when you reach the last element and there is no false return the element
         helpers.loadingUpdate(false);
         return;
     }
@@ -99,14 +102,14 @@ function guardChecking(guards, helpers, i=0){
         if(x === true){//Check the next one if failed
             guardChecking(guards, helpers, i+1);
         }else{
-            helpers.resultSet(x);
+            helpers.resultSet(x); //Change the result depending on error fallbackcomponent
         }
 
     });
 }
 
 //Insert Middleware Function here
-const guardActions = {
+const guardActions = {//Return a component of wrong or invalid
     loginRequired: async (helper= false, val=false)=>{
         return new Promise(resolve=>resolve(true)) //return to continue checking
     },

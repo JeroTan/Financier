@@ -5,11 +5,11 @@ import Footer from "./Footer";
 export default (props)=>{
     //Structure
     const children = props.children;
-    const cleanBody = props.cleanBody == false;
+    const clean = props.clean == false;
 
     //Component
-    const navbar = useMemo( ()=>!cleanBody && <NavBar /> , [cleanBody]);
-    const footer = useMemo( ()=>!cleanBody && <Footer /> , [cleanBody]);
+    const navbar = useMemo( ()=>!clean && <NavBar /> , [clean]);
+    const footer = useMemo( ()=>!clean && <Footer /> , [clean]);
 
     return <main className="relative min-h-screen flex flex-col text-slate-300">
         {navbar}
