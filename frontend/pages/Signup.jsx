@@ -21,3 +21,11 @@ export function Signup(){
         </main>
     </PagePlate>
 }
+
+export function SignupForm(){
+
+    return <form>
+
+        
+    </form>
+}

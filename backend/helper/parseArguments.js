@@ -11,3 +11,10 @@ export function strArrtToArr(input, strSplitter = ","){
     }
     return input.split(strSplitter);
 }
+
+export function getRegex(input){
+    if(typeof input === "object")
+        return new RegExp(input);
+    return input;
+    
+}

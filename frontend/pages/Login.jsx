@@ -45,7 +45,7 @@ function LoginForm(){
             <input type="password" className="my-field w-full" placeholder="" />
         </div>
         <div className="mt-7 flex justify-center">
-            <button className="my-main-btn-big">Login</button>
+            <button type="submit" className="my-main-btn-big">Login</button>
         </div>
     </form>
 }
