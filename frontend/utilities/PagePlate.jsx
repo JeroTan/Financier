@@ -5,7 +5,7 @@ import Footer from "./Footer";
 export default (props)=>{
     //Structure
     const children = props.children;
-    const clean = props.clean == false;
+    const clean = props.clean ?? false;
 
     //Component
     const navbar = useMemo( ()=>!clean && <NavBar /> , [clean]);

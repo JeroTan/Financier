@@ -4,6 +4,7 @@ import Middleware from "./Middleware"
 import { Login } from "../pages/Login"
 import { Signup } from "../pages/Signup"
 import { NotFoundPage } from "../utilities/Placeholder"
+import { Dashboard } from "../pages/Dashboard"
 
 
 
@@ -18,6 +19,9 @@ export default ()=>{
             } />
             <Route path="/signup" element={
                 <Middleware guards="mustNotLogin" element={<Signup />} />
+            } />
+            <Route path="/dashboard" element={
+                <Middleware guards="loginRequired" element={<Dashboard />} /> 
             } />
 
             {/**Not Found */}

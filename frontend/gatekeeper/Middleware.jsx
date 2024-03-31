@@ -21,6 +21,8 @@ import { Navigate, useLocation } from "react-router-dom";
 import { LoadingPage } from "../utilities/Placeholder";
 import { GlobalConfigContext } from "../utilities/GlobalConfig";
 import PagePlate from "../utilities/PagePlate";
+import { auth } from "../helper/Auth";
+import { anyToArr } from "../helper/ParseArgument";
 
 
 export default (props)=>{
@@ -29,34 +31,24 @@ export default (props)=>{
     const location = useLocation();
 
     //Structure
+    const [result, resultSet] = useState(false);
     const element = props.element;
     const guards = useMemo(()=>{
-        let guards = props.guards ?? [];
-
-        if(typeof(guards) === "string"){
-            guards = (guards).split("|");
-        };
+        let guards = anyToArr(props.guards??[]);
         guards = guards.map(e => {
-            let eName = "";
+
+            let eName = anyToArr(e, ":");
             let eVal = [];
-            
-            if(typeof(e) === "string"){
-                const stringParse = e.split(":");
-                eName = stringParse[0];
-                if(stringParse.length == 2){
-                    eVal = stringParse[1];
-                    if(!Array.isArray(eVal.length) && typeof(eVal) === "string"){
-                        eVal = stringParse[1].split(",");
-                    }
-                }
+            if(eName.length == 2){
+                eVal = anyToArr(eName[0], ",");
             }
+            eName = eName[0];
 
             return {name: eName, val: eVal};
         });
         
         return guards;
-    }, []);
-    const [result, resultSet] = useState(false);
+    }, [location.pathname]);
     const helpers = useMemo(()=>({
         resultSet:resultSet,
         element:element,
@@ -109,11 +101,27 @@ function guardChecking(guards, helpers, i=0){
 }
 
 //Insert Middleware Function here
-const guardActions = {//Return a component of wrong or invalid
+const guardActions = {//Return a component of react router of wrong or invalid else return true
     loginRequired: async (helper= false, val=false)=>{
-        return new Promise(resolve=>resolve(true)) //return to continue checking
+        return new Promise(resolve=>{
+            auth.verifyToken().then(x=>{
+                if(x){
+                    resolve(true);
+                }else{
+                    resolve(<Navigate to="/login" replace />);
+                }
+            })
+        }) //return to continue checking
     },
     mustNotLogin: async (helper= false, val=false)=>{
-        return new Promise(resolve=>resolve(true));
+        return new Promise((resolve, reject)=>{
+            auth.verifyToken().then(x=>{
+                if(!x)
+                    resolve(true);
+                else{
+                    resolve(<Navigate to="/dashboard" replace />);
+                }
+            })
+        });
     },
 };

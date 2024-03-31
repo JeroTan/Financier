@@ -2,10 +2,8 @@ import jwt from "jsonwebtoken"; //need
 import bcrypt from "bcrypt";
 import 'dotenv/config';
 import { db } from "../migrations/define.js";
-const ExpiresIn = process.env.JWT_EXPIRES;
+const ExpiresIn = Number(process.env.JWT_EXPIRES);
 const Secret = process.env.JWT_SECRET;
-console.log(ExpiresIn, Secret);
-
 
 
 export function tokenAuth(id){
@@ -16,7 +14,6 @@ export function tokenRead(token, zawardo=false){
     try{
         return jwt.verify(token, Secret, {ignoreExpiration: zawardo});
     }catch(e){
-        console.error(e);
         return false;
     }
 }
@@ -44,21 +41,30 @@ export async function checkHash(data, hash){
 
 
 ////COMPOUND HELPER | REQUIRing more dependencies;
-export function updateDbHashData(id, data={}){
+export function updateDbHashData(accountId, data={}){
     const hashData = tokenHash(data);
-    db("loginToken").where({id: id}).first().then(data=>{
+    db("loginToken").where({accountId: accountId}).first().then(async data=>{
         if(data){
-            db("loginToken").insert({accountId: id, hashData: hashData});
+            await db("loginToken").where({id:data.id}).update({hashData: hashData});
         }else{
-            db("loginToken").where({id:data.id}).update({hashData: hashData});
+            await db("loginToken").insert({accountId: accountId, hashData: hashData});   
         }
     });
 }
+export function getDbHashData(accountId){
+    return new Promise((resolve, reject)=>{
+        db("loginToken").where({accountId: accountId}).first().then(data=>{
+            resolve(data);
+        }).catch(e=>{
+            reject(e);
+        })
+    });
+}
 
-export function dropDbHashData(id){
-    db("loginToken").where({id: id}).first().then(data=>{
+export function dropDbHashData(accountId){
+    db("loginToken").where({accountId: accountId}).first().then(data=>{
         if(data){
-            db("loginToken").where({id: data.id}).del();
+            db("loginToken").where({accountId: data.id}).del();
         }
     });
 }

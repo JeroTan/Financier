@@ -68,7 +68,7 @@ class ApiRequestPlate{
         return this;
     }
     auth(){
-        this.Config.headers["Authorization"] = `Bearer ${localStorage.getItem('token')}`;
+        this.Config.headers["Authorization"] = `Bearer ${localStorage.getItem('token') || ""}`;
         return this;
     }
 
@@ -105,13 +105,25 @@ class ApiRequestPlate{
     }
     
 }
-const api = new ApiRequestPlate;
+
 
 
 
 
 /*************** DEFINE API CALLER HERE ****************** */
 export async function ApiLoginWithGoogle(credentials){
-    return await api.url("login_google").data({credentials: credentials}).post().request();
+    const api = new ApiRequestPlate;
+    return await api.url("loginGoogle").data({credentials: credentials}).post().request();
 }
-
+export async function ApiVerifySignUp(field, data){ //data in {} param means what fieldName
+    const api = new ApiRequestPlate;
+    return await api.url('verifySignup').params({field: field}).data(data).post().request();
+}
+export async function ApiSignup(data){
+    const api = new ApiRequestPlate;
+    return await api.url('signup').data(data).post().request();
+}
+export async function ApiVerifyAuth(token){
+    const api = new ApiRequestPlate;
+    return await api.url('verifyAuth').auth().data({token:token}).post().request();
+}

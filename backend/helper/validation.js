@@ -1,4 +1,5 @@
-import { getRegex, strArrtToArr } from "./parseArguments.js";
+import { db } from "../migrations/define.js";
+import { getRegex, anyToArr } from "./parseArguments.js";
 
 
 /*****************TEMPLATE //Do not touch *********************/
@@ -6,7 +7,6 @@ export class Validation{
     constructor(input = "", fieldName = ""){
         this.input = input;
         this.fieldName = fieldName;
-        this.argument = strArrtToArr(argument);
         this.action = [];
     }
 
@@ -44,6 +44,7 @@ export class Validation{
 
     //--Public Object Method--//
     required(argument=[], customMessage=false){
+        
         return this.addValidateAction((resolve, reject)=>{
             if(this.input !== null && this.input !== undefined && this.input !== "" && this.input !== 0 && (Array.isArray(this.input) ? this.input.length > 0 :true ) ){
                 return resolve(true);
@@ -71,9 +72,31 @@ export class Validation{
             
         });
     }
+    iNumber(argument=[], customMessage=false){
+        
+    }
+    unique(argument=[], customMessage=false){
+        return this.addValidateAction((resolve, reject)=>{
+            argument = anyToArr(argument, ",");
+            const ThisInput = this.input;
+            const ThisCreateErrorMessage = this.createErrorMessage;
+            (async()=>{
+                const result = await db(argument[0]).where( {[argument[1]]: ThisInput} ).first();
+                if(result){
+                    if(customMessage){
+                        return reject( ThisCreateErrorMessage(customMessage) );
+                    }
+
+                    return reject(`"${ThisInput}" is already exist.`);
+                }
+                resolve(true);
+            })();
+        });
+    }
     regex(argument=[], customMessage=false){
         return this.addValidateAction((resolve, reject)=>{
             const ThisInput = this.input;
+            argument = anyToArr(argument, ",");
             if(
                 argument.every(x=>{
                     return getRegex(x).test(ThisInput);
@@ -92,6 +115,7 @@ export class Validation{
     notRegex(argument=[], customMessage=false){
         return this.addValidateAction((resolve, reject)=>{
             const ThisInput = this.input;
+            argument = anyToArr(argument, ",");
             if(
                 argument.every(x=>{
                     return !getRegex(x).test(ThisInput);
@@ -109,9 +133,11 @@ export class Validation{
     }
     max(argument=[], customMessage=false){
         return this.addValidateAction((resolve, reject)=>{
-            if(typeof this.input === "string" && this.input.length > argument[0])
+            argument = anyToArr(argument, ",");
+            if(typeof this.input === "string" && this.input.length <= argument[0]){
                 return resolve(true);
-            else if(typeof this.input === "number" && this.input > argument[0]){
+            }
+            else if(typeof this.input === "number" && this.input <= argument[0]){
                 return resolve(true);
             }
 
@@ -131,9 +157,10 @@ export class Validation{
     }
     min(argument=[], customMessage=false){
         return this.addValidateAction((resolve, reject)=>{
-            if(typeof this.input === "string" && this.input.length < argument[0])
+            argument = anyToArr(argument, ",");
+            if(typeof this.input === "string" && this.input.length >= argument[0])
                 return resolve(true);
-            else if(typeof this.input === "number" && this.input < argument[0]){
+            else if(typeof this.input === "number" && this.input >= argument[0]){
                 return resolve(true);
             }
 
@@ -153,6 +180,7 @@ export class Validation{
     }
     same(argument=[], customMessage=false){//accept arguement as instance of this class;
         return this.addValidateAction((resolve, reject)=>{
+            argument = anyToArr(argument, ",");
             if( argument[0].input === this.input )
                 return resolve(true);
 
@@ -168,7 +196,8 @@ export class Validation{
 
 
     async validate(response = false){
-        async function doValidation(action = this.action, current = 0){
+        const ThisAction = this.action;
+        async function doValidation(action = ThisAction, current = 0){
             if(action.length <= current){
                 return true;
             }
@@ -188,19 +217,66 @@ export class Validation{
             return result;
         }else{
             if(result!== true){
-                const errorToSend = {};
-                errorToSend[this.actualFieldName] = result;
-                response.status(422).json(errorToSend);
+                response.status(422).json( {[this.actualFieldName]: result} );
             }else{
-                response.status(200);
+                response.sendStatus(200);
             }
         }
         
     }
 }
+//InstanceGenerator
+export function generateValidateInstance(total){
+    return [...Array(total)].map(x=>new Validation);
+}
+//Validate Multiple Instance
+export async function multiValidate(valInst){
+    const errorData = {};
+
+    for(const v of valInst){
+        const result = await v.validate();
+        if(result !== true){
+            errorData[v.actualFieldName] = result;
+        }   
+    }
+
+    return errorData;
+}
+//Get the required Post Data Only else return a response 422 | 
+export function getPostData(body, requiredData, res){
+    const missingData = {};
+    requiredData.forEach(e => {
+        if(!Object.keys(body).includes(e))
+            missingData[e] = "Invalid Data";
+    });
+
+
+    if(Object.keys(missingData).length > 0){
+        res.status(422).json(missingData);
+        return false;
+    }
+    
+    return body;
+}
+export function getPostDataOpt(body, requiredData){
+    const newBody = {};
+
+    requiredData.forEach(e => {
+        newBody[e] = body[e] ?? "";     
+    });
+
+    return newBody;
+}
+
+
 
 
 /************ DEFINE FUNCTION SHORTCUTS HERE *******************/
+function verifyUsername(username){
+    const valUsername = new Validation(username, "Username");
+
+    return valUsername.required().regex(/^[a-zA-Z0-9\,\.\-\_\"\'\s]*$/).max(32).validate();
+}
 function verifyPassword(password){
     const valPassword = new Validation(password, "Password");
 
@@ -211,9 +287,4 @@ function verifyConfirmPassword(password, confirmPassowrd){
     const valConfirmPassword = new Validation(confirmPassowrd, "Confirm Password");
 
     return valConfirmPassword.required().same([valPassword]).validate();
-}
-function verifyUsername(username){
-    const valUsername = new Validation(username, "Username");
-
-    return valUsername.required().regex(/^[a-zA-Z0-9\,\.\-\_\"\'\s]*$/).max(32).validate();
 }

@@ -10,18 +10,18 @@ export default {
         rules: [                                        
             {
                 test: /\.(js|jsx)$/,                        //Test is the regex to check what files to add
-                exclude: /(node_modules|bower_components|dist)/, //What file or folders to exclude
+                exclude: /(node_modules|public|backend|database)/, //What file or folders to exclude
                 loader: "babel-loader",                     //Tranformer or transcriber of file need to use specifically
                 options: { presets: ["@babel/env"] }        //IDk this one just add it or its like another layer of layer to specifically transform stuff
             },
             {
                 test: /\.css$/,                         //Same but with css and be sure to add a css loader
-                exclude: /(node_modules|bower_components|dist)/,
+                exclude: /(node_modules|public|backend|database)/,
                 use: ["style-loader", "css-loader", "postcss-loader"] 
             },
             {
                 test: /\.(png|jpg|gif|ico)$/i,          // For files
-                exclude: /(node_modules|bower_components|dist)/,
+                exclude: /(node_modules|public|backend|database)/,
                 use: [
                     {
                     loader: 'file-loader',

@@ -1,7 +1,9 @@
 //Use Express to handle serve
 import express from "express";
 const app = express();
+
 import cors from "cors";
+import bearerToken from "express-bearer-token";
 
 //Controller Import
 import MainPage from "../controller/web/main.js";
@@ -10,9 +12,10 @@ import Signing from "../controller/api/v1/signing.js";
 
 //HelperImport
 import { printEndpoints } from "../helper/view.js";
+import { getToday } from "../helper/math.js";
 
 
-//RoutingLinks
+//Routing Definition
 const protocol = "http";
 const domain = "localhost";
 const port = "8000";
@@ -30,6 +33,7 @@ const CORS = {
     creadentials: true,
     optionsSuccessStatus: 200,
 };
+app.use(bearerToken());
 
 
 //Run Routes from Express including the listener| This should be called on index.js
@@ -66,10 +70,19 @@ function webRoutes(){
 
 //Define the routes of that will be run to return data.
 function apiRoutes(){
-    const basicMid = [cors(CORS), express.json(), express.urlencoded()];
+    const basicMid = [
+        cors(CORS), 
+        express.json(), 
+        express.urlencoded({
+            extended: true,
+        })
+    ];
 
     //Signing
-    apiPOST('/login_google', Signing.loginGoogle, [...basicMid]);
+    apiPOST('/loginGoogle', Signing.loginGoogle, [...basicMid]);
+    apiPOST('/verifySignup', Signing.verifySignup, [...basicMid]);
+    apiPOST('/signup', Signing.signup, [...basicMid]);
+    apiPOST('/verifyAuth', Signing.verifyAuth, [...basicMid]);
 }
 //******************* DEFINE ROUTES HERE ************************/
 
@@ -87,15 +100,20 @@ function apiRoutes(){
 ///HELPER Function 
 function routingTemplate(requestType, withPreLink = false){ //Callback must accept req, res
     return (route, callback, middlewares=[])=>{
+        const modCallback = (req, res)=>{//Define Additionals Here after running the controller;
+            console.log(`${req.url} : ${getToday()}`);
+            callback(req, res);
+        }
+
         if( Array.isArray(withPreLink) ){
             for(let i = 0; i < withPreLink.length; i++){
-                app.options(withPreLink[i]+route, ...middlewares, callback);
-                app[requestType](withPreLink[i]+route, ...middlewares, callback);
+                app.options(withPreLink[i]+route, ...middlewares, modCallback);
+                app[requestType](withPreLink[i]+route, ...middlewares, modCallback);
             }
             return;
         }
-        app.options(route, ...middlewares, callback);
-        app[requestType](route, ...middlewares, callback);
+        app.options(route, ...middlewares, modCallback);
+        app[requestType](route, ...middlewares, modCallback);
     };
 }
 

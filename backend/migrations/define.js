@@ -1,12 +1,13 @@
 //Define Database here
 import knex from "knex";
 import path from "path";
-import { strArrtToArr } from "../helper/parseArguments.js";
+import { anyToArr } from "../helper/parseArguments.js";
 export const db = knex({
     client: 'sqlite3',
     connection: {
-        filename: path.resolve("database/financier.db")
-    }
+        filename: path.resolve("database/financier.db"),
+    },
+    useNullAsDefault: true
 });
 
 
