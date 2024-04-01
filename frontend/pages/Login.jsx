@@ -1,13 +1,14 @@
 //ReactHooks
 import { useContext, useEffect, useMemo, useReducer } from "react"
 //Imports
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 //Components
 import { GoogleSignIn } from "./Main";
 import PagePlate from "../utilities/PagePlate";
 import { ApiLogin } from "../helper/API";
 import { GlobalConfigContext } from "../utilities/GlobalConfig";
 import { Pop } from "../utilities/Pop";
+import { auth } from "../helper/Auth";
 
 
 export const Login = ()=>{
@@ -31,6 +32,7 @@ export const Login = ()=>{
 function LoginForm(){
     //Global
     const [gConfig, gConfigCast] = useContext(GlobalConfigContext);
+    const navigation = useNavigate();
 
     //Data Modifier
     const [ data, dataCast ] = useReducer((state, action)=>{
@@ -59,25 +61,29 @@ function LoginForm(){
             password: data.password.value,
         }).then(x=>{
             if(x.status == 200){
-                return pop.type("success").title("Login Successfully").message("We will redirect you now to the dashboard.").button(false, false, false, false);
+                pop.type("success").title("Login Successfully").message("We will redirect you now to the dashboard.").button(false, false, false, true);
                 auth.storeToken(x.data.token);
                 navigation("/dashboard");
-            }else if(x.status == 422){
-                console.log(x);
+                return;
+            }else if(x.status == 401){
                 return pop.type("error").title("Login Failed").message("Username and password did not match. Please try again.").button(true, false);
             }
             return pop.type("error").title("Login Failed").message("Something happened on our end! Please try again later.").button(true, false);
         })
     }
+    function inputData(e){
+        const {value, name} = e.target;
+        dataCast({run:"updateValue", key:name, val:value});
+    }
 
     return <form onSubmit={submitData}>
         <div className="mb-2">
             <label>Username</label>
-            <input type="text" className="my-field w-full" placeholder="" />
+            <input type="text" name="username" className="my-field w-full" value={data.username.value} onInput={inputData}  placeholder="" />
         </div>
         <div className="mb-2">
             <label>Password</label>
-            <input type="password" className="my-field w-full" placeholder="" />
+            <input type="password" name="password" className="my-field w-full" value={data.password.value} onInput={inputData} placeholder="" />
         </div>
         <div className="mt-7 flex justify-center">
             <button type="submit" className="my-main-btn-big">Login</button>

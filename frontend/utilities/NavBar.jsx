@@ -11,7 +11,7 @@ export default ()=>{
         navigation("/login");
     }, []);
 
-    return <header className="p-2 bg-zinc-800">
+    return <header className="p-2 bg-zinc-900 ">
         Financier <button className="bg-green" onClick={logout}>LogOut</button>
     </header>
 }

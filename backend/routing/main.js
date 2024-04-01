@@ -80,8 +80,12 @@ function apiRoutes(){
 
     //Signing
     apiPOST('/loginGoogle', Signing.loginGoogle, [...basicMid]);
+
     apiPOST('/verifySignup', Signing.verifySignup, [...basicMid]);
     apiPOST('/signup', Signing.signup, [...basicMid]);
+
+    apiPOST('/login', Signing.login, [...basicMid]);
+    
     apiPOST('/verifyAuth', Signing.verifyAuth, [...basicMid]);
 }
 //******************* DEFINE ROUTES HERE ************************/

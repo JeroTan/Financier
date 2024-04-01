@@ -1,7 +1,7 @@
 import { jwtDecode } from "jwt-decode";
 import { view } from "../../../helper/view.js";
 import { db } from "../../../migrations/define.js";
-import { dropDbHashData, hashData, tokenAuth, tokenHash, tokenRead, updateDbHashData } from "../../../helper/tokenizer.js";
+import { checkHash, dropDbHashData, hashData, tokenAuth, tokenHash, tokenRead, updateDbHashData } from "../../../helper/tokenizer.js";
 import { createRandomUsername } from "../../../helper/randomizer.js";
 import { Validation, generateValidateInstance, getPostData, getPostDataOpt, multiValidate } from "../../../helper/validation.js";
 /**
@@ -22,8 +22,29 @@ import { Validation, generateValidateInstance, getPostData, getPostDataOpt, mult
 
 export default {
     login: (req, res)=>{
+        const {username, password} = getPostData(req.body, ["username", "password"], res);
+        
+        (async()=>{
+            const result = await db("account").where({username: username}).first();
 
+            if(!result)
+                return res.sendStatus(401);
+            
+            const verifyPassword = await checkHash(password, result.password);
+            if(!verifyPassword)
+                return res.sendStatus(401);
+    
+            const token = tokenAuth(result.id);
+            updateDbHashData(result.id, {username: result.username});
+            res.status(200).json({
+                result: "success",
+                token: token,
+            })
+                
+            
+        })();
     },
+
     signup: (req, res)=>{
         const {username, password, confirmPassword} = getPostData(req.body, ["username", "password", "confirmPassword"], res);
         const valInst = generateValidateInstance(3);

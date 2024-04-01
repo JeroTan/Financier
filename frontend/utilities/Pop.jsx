@@ -51,6 +51,9 @@ export function PopComponent(){
     return <dialog ref={dialogRef} className="my-dialog " style={{width: width}} onClick={(e)=>{
         if(!backdropTrigger)
             return;
+        if( !(e.target === dialogRef.current) )
+            return;
+        
         if(!backdropTriggerCallback){
             closeThisPop();
             return;
