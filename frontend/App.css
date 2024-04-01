@@ -35,6 +35,10 @@ html { height:100%; }
     @apply text-4xl font-bold text-yellow-400;
 }
 
+.my-big-text{
+    @apply text-4xl text-zinc-200;
+}
+
 .my-field{
     @apply bg-transparent outline-none stroke-none border-x-0 border-t-0 focus:border-b-4 focus:border-b-zinc-200 hover:border-b-zinc-200 border-b-2 px-1 pb-1 border-b-zinc-500 delay-100 placeholder:text-slate-700;
 }
@@ -43,11 +47,27 @@ html { height:100%; }
 }
 
 .my-main-btn-big{
-    @apply px-5 py-2 bg-yellow-400 rounded-full text-zinc-900 font-semibold hover:bg-yellow-500;
+    @apply px-5 py-2 bg-yellow-400 rounded-full text-zinc-900 font-semibold hover:bg-yellow-500 focus:outline-2 focus:outline-none;
+}
+.my-main-btn-outline-big{
+    @apply px-5 py-2 border border-yellow-400 rounded-full text-zinc-300 font-semibold hover:bg-yellow-500/75 focus:outline-none;
 }
 
 .my-error-text{
     @apply text-red-800 italic;
+}
+
+.my-dialog::backdrop{
+    backdrop-filter: blur(5px) brightness(.4) contrast(.95)!important;
+  
+
+}
+.my-dialog{
+    overscroll-behavior: 'contain'!important;
+    animation: slide-in-top 0.1s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
+    /*For Tailwind*/
+    @apply bg-zinc-800 p-2 text-zinc-200  outline-none rounded-md shadow shadow-zinc-600/50;
+    /*Specific*/
 }
 
 
@@ -71,6 +91,45 @@ html { height:100%; }
         opacity: 1;
     }
 }
+@keyframes slide-in-top {
+    0% {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+    100% {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+@keyframes a-fade-in-scale {
+    0% {
+        transform: translateZ(-30px) scale(0.5);
+        opacity: 0;
+    }
+    100% {
+        transform: translateZ(0) scale(1);
+        opacity: 1;
+    }
+}
+@keyframes a-kuru-kuru {
+    0% {
+        transform: rotate(0);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
 
 .a-fade-in{animation:fade-in .5s cubic-bezier(.455,.03,.515,.955) both}
+.a-slide-in-top {
+	animation: slide-in-top 0.5s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
+}
+.a-fade-in-scale {
+	animation: a-fade-in-scale .3s cubic-bezier(0.175, 0.885, 0.320, 1.275) both;
+}
+
+.a-kuru-kuru {
+	animation: a-kuru-kuru 1s linear 0s infinite;
+}
 

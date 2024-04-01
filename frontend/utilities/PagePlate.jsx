@@ -20,6 +20,6 @@ export default (props)=>{
         </main>
         {/* The body of the page */}
 
-        {navbar}
+        {footer}
     </main>
 }

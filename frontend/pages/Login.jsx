@@ -1,10 +1,13 @@
 //ReactHooks
-import { useEffect, useMemo, useReducer } from "react"
+import { useContext, useEffect, useMemo, useReducer } from "react"
 //Imports
 import { Link } from "react-router-dom";
 //Components
 import { GoogleSignIn } from "./Main";
 import PagePlate from "../utilities/PagePlate";
+import { ApiLogin } from "../helper/API";
+import { GlobalConfigContext } from "../utilities/GlobalConfig";
+import { Pop } from "../utilities/Pop";
 
 
 export const Login = ()=>{
@@ -26,16 +29,48 @@ export const Login = ()=>{
 }
 
 function LoginForm(){
+    //Global
+    const [gConfig, gConfigCast] = useContext(GlobalConfigContext);
+
+    //Data Modifier
     const [ data, dataCast ] = useReducer((state, action)=>{
-        const refState = state;
+        const refState = structuredClone(state);
+        switch(action.run){
+            case "updateValue":
+                refState[action.key].value = action.val;
+            break;
+            case "updateError":
+                refState[action.key].error = action.val;
+            break;
+        };
+        return refState;
     }, {
-        username: "",
-        password: "",
+        username: {value: "", error:""},
+        password: {value: "", error:""},
     });
 
-    return <form onSubmit={(e)=>{
+    //Functionality
+    function submitData(e){
         e.preventDefault();
-    }}>
+        const pop = new Pop(gConfig, gConfigCast);
+        pop.type("loading").message("Authenticating. . .");
+        ApiLogin({
+            username: data.username.value,
+            password: data.password.value,
+        }).then(x=>{
+            if(x.status == 200){
+                return pop.type("success").title("Login Successfully").message("We will redirect you now to the dashboard.").button(false, false, false, false);
+                auth.storeToken(x.data.token);
+                navigation("/dashboard");
+            }else if(x.status == 422){
+                console.log(x);
+                return pop.type("error").title("Login Failed").message("Username and password did not match. Please try again.").button(true, false);
+            }
+            return pop.type("error").title("Login Failed").message("Something happened on our end! Please try again later.").button(true, false);
+        })
+    }
+
+    return <form onSubmit={submitData}>
         <div className="mb-2">
             <label>Username</label>
             <input type="text" className="my-field w-full" placeholder="" />

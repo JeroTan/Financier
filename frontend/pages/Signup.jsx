@@ -30,6 +30,7 @@ export function SignupForm(){
     //Global
     const navigation = useNavigate();
 
+    //Data Modifier
     const [ data, dataCast ] = useReducer((state, action)=>{
         const refState = structuredClone(state);
         switch(action.run){
@@ -59,7 +60,6 @@ export function SignupForm(){
                 auth.storeToken(x.data.token);
                 navigation("/dashboard");
             }else if(x.status == 422){
-                console.log(x);
                 Object.keys(x.data).forEach(key=>{
                     dataCast({run:"updateError", key:key, val:x.data[key]});
                 });
