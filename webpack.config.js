@@ -20,7 +20,7 @@ export default {
                 use: ["style-loader", "css-loader", "postcss-loader"] 
             },
             {
-                test: /\.(png|jpg|gif|ico)$/i,          // For files
+                test: /\.(png|jpg|gif|ico|svg)$/i,          // For files
                 exclude: /(node_modules|public|backend|database)/,
                 use: [
                     {
