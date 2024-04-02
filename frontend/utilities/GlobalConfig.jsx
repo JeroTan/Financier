@@ -31,12 +31,28 @@ function dispatcher(state, action){
         }
         refState.popUp = popUpData;
     }
+
+    if(action.sideNav !== undefined){
+        switch(action.sideNav){
+            case "open":
+                refState.sideNavisOpen = true;
+            break;
+            case "close":
+                refState.sideNavisOpen = false;
+            break;
+            case "update":
+                refState.sideNavSelected = action.val;
+            break;
+        }
+    }
     
     return refState;
 }
 
 const state = {
     pageLoadingPercent: false,
+    sideNavisOpen: false,
+    sideNavSelected: "financialReport",
     popUp: {
         isOpen: false,
         width: "450px",

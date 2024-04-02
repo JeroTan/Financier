@@ -1,6 +1,7 @@
 import { useMemo, useReducer } from "react";
 import NavBar from "./NavBar";
 import Footer from "./Footer";
+import { SideNav } from "./SideNav";
 
 export default (props)=>{
     //Structure
@@ -8,8 +9,9 @@ export default (props)=>{
     const clean = props.clean ?? false;
 
     //Component
-    const navbar = useMemo( ()=>!clean && <NavBar /> , [clean]);
-    const footer = useMemo( ()=>!clean && <Footer /> , [clean]);
+    const navbar = useMemo( ()=>!clean && <NavBar /> , [clean] );
+    const footer = useMemo( ()=>!clean && <Footer /> , [clean] );
+    const sidenav = useMemo( ()=>!clean && <SideNav /> , [clean] );
 
     return <main className="relative min-h-screen flex flex-col text-slate-300">
         {navbar}
@@ -21,5 +23,6 @@ export default (props)=>{
         {/* The body of the page */}
 
         {footer}
+        {sidenav}
     </main>
 }

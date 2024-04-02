@@ -61,7 +61,7 @@ function LoginForm(){
             password: data.password.value,
         }).then(x=>{
             if(x.status == 200){
-                pop.type("success").title("Login Successfully").message("We will redirect you now to the dashboard.").button(false, false, false, true);
+                pop.type("success").title("Login Successfully").message("Welcome to Financier").button(true, false, false, true);
                 auth.storeToken(x.data.token);
                 navigation("/dashboard");
                 return;

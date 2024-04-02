@@ -5,6 +5,11 @@ import { Login } from "../pages/Login"
 import { Signup } from "../pages/Signup"
 import { NotFoundPage } from "../utilities/Placeholder"
 import { Dashboard } from "../pages/Dashboard"
+import FinancialReport from "../pages/DashboardComp/FinancialReport"
+import AddFinance from "../pages/DashboardComp/AddFinance"
+import ConsumptionSourceList from "../pages/DashboardComp/ConsumptionSourceList"
+import ProfitSourceList from "../pages/DashboardComp/ProfitSourceList"
+import Profile from "../pages/DashboardComp/Profile"
 
 
 
@@ -20,9 +25,19 @@ export default ()=>{
             <Route path="/signup" element={
                 <Middleware guards="mustNotLogin" element={<Signup />} />
             } />
+
+            {/*Dashboard */}
             <Route path="/dashboard" element={
                 <Middleware guards="loginRequired" element={<Dashboard />} /> 
-            } />
+            } >
+                <Route index element={<FinancialReport/>} />
+                <Route path="financialReport" element={<FinancialReport/>} />
+                <Route path="addFinance" element={<AddFinance/>} />
+                <Route path="consumptionSourceList" element={<ConsumptionSourceList/>} />
+                <Route path="profitSourceList" element={<ProfitSourceList/>} />
+                <Route path="profile" element={<Profile/>} />
+            </Route>
+            
 
             {/**Not Found */}
             <Route path="/*" element={<NotFoundPage/>}/>
