@@ -16,7 +16,7 @@ export default ()=>{
         navigation("/login");
     }, []);
 
-    return <header className="relative h-14 px-2 bg-zinc-900 flex items-center gap-2">
+    return <NavHeader>
         <div className="fill-yellow-500/75 hover:fill-yellow-400 cursor-pointer" onClick={()=>{
             gConfigCast({sideNav:"open"});
         }}>
@@ -36,5 +36,11 @@ export default ()=>{
         
         
          <button className="bg-green" onClick={logout}>LogOut</button>
+    </NavHeader>
+}
+
+function NavHeader(props){
+    return <header className="relative h-14 px-2 bg-zinc-900 flex items-center gap-2">
+        {props.children}
     </header>
 }

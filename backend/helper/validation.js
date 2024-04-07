@@ -225,6 +225,9 @@ export class Validation{
         
     }
 }
+
+
+
 //InstanceGenerator
 export function generateValidateInstance(total){
     return [...Array(total)].map(x=>new Validation);
@@ -259,32 +262,9 @@ export function getPostData(body, requiredData, res){
     return body;
 }
 export function getPostDataOpt(body, requiredData){
-    const newBody = {};
-
     requiredData.forEach(e => {
-        newBody[e] = body[e] ?? "";     
+        body[e] = body[e] ?? "";     
     });
 
-    return newBody;
-}
-
-
-
-
-/************ DEFINE FUNCTION SHORTCUTS HERE *******************/
-function verifyUsername(username){
-    const valUsername = new Validation(username, "Username");
-
-    return valUsername.required().regex(/^[a-zA-Z0-9\,\.\-\_\"\'\s]*$/).max(32).validate();
-}
-function verifyPassword(password){
-    const valPassword = new Validation(password, "Password");
-
-    return valPassword.required().min(8).max(128).validate();
-}
-function verifyConfirmPassword(password, confirmPassowrd){
-    const valPassword = new Validation(password, "Password");
-    const valConfirmPassword = new Validation(confirmPassowrd, "Confirm Password");
-
-    return valConfirmPassword.required().same([valPassword]).validate();
+    return body;
 }

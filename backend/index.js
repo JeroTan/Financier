@@ -1,7 +1,8 @@
 //Runner 
-import {runRoutes} from "./routing/main.js";
 import 'dotenv/config';
+import { MainRouting } from './routing/main.js';
 
 
 //Run Routing Here
-runRoutes();
+const routing = new MainRouting;
+routing.run();

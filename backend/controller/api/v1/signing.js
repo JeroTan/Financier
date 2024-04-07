@@ -1,9 +1,10 @@
 import { jwtDecode } from "jwt-decode";
-import { view } from "../../../helper/view.js";
+import { view } from "../../../helper/backendUtilities.js";
 import { db } from "../../../migrations/define.js";
 import { checkHash, dropDbHashData, hashData, tokenAuth, tokenHash, tokenRead, updateDbHashData } from "../../../helper/tokenizer.js";
 import { createRandomUsername } from "../../../helper/randomizer.js";
 import { Validation, generateValidateInstance, getPostData, getPostDataOpt, multiValidate } from "../../../helper/validation.js";
+import { Controller } from "../../plate.js";
 /**
  * Every Callback here must be or optional if you want to have req and res
  * req means request or the requesting data or payload
@@ -20,9 +21,11 @@ import { Validation, generateValidateInstance, getPostData, getPostDataOpt, mult
 
 
 
+
+
 export default {
     login: (req, res)=>{
-        const {username, password} = getPostData(req.body, ["username", "password"], res);
+        const {username, password} = req.body;
         
         (async()=>{
             const result = await db("account").where({username: username}).first();
@@ -46,7 +49,8 @@ export default {
     },
 
     signup: (req, res)=>{
-        const {username, password, confirmPassword} = getPostData(req.body, ["username", "password", "confirmPassword"], res);
+        const {username, password, confirmPassword} = req.body;
+
         const valInst = generateValidateInstance(3);
         valInst[0].addInput(username).addField("Username").addActualField("username")
             .required().regex(/^[a-zA-Z0-9\,\.\-\_\"\'\s]*$/).unique("account,username").max(32);
@@ -57,9 +61,8 @@ export default {
         
         (async()=>{
             const validateResult =  await multiValidate(valInst);
-            if(Object.keys(validateResult).length > 0){
+            if(Object.keys(validateResult).length > 0)
                 return res.status(422).json(validateResult);
-            }
 
             const id = await db("account").returning("id").insert({
                 username: username,
@@ -78,25 +81,25 @@ export default {
     verifySignup: (req, res)=>{
         const valInst = new Validation;
         const param = req.query.field ?? "";
-        const body = getPostDataOpt(req.body, ["username", "password", "confirmPassword"]);
+        const {username, password, confirmPassword} = req.body;
+
         switch(param){
             case "username":
-                valInst.addInput(body.username).addField("Username").addActualField("username")
+                valInst.addInput(username).addField("Username").addActualField("username")
                     .required().regex(/^[a-zA-Z0-9\,\.\-\_\"\'\s]*$/).unique("account,username").max(32).validate(res);
             break;
             case "password":
-                valInst.addInput(body.password).addField("Password").addActualField("password")
+                valInst.addInput(password).addField("Password").addActualField("password")
                     .required().min(8).max(128).validate(res);
             break;
             case "confirmPassword":
-                const valInst2 = new Validation(body.password, "Password");
-                valInst.addInput(body.confirmPassword).addField("Confirm Password").addActualField("confirmPassword")
+                const valInst2 = new Validation(password, "Password");
+                valInst.addInput(confirmPassword).addField("Confirm Password").addActualField("confirmPassword")
                     .required().same([valInst2]).validate(res);
             break;
         }
-        
-        
     },
+
     loginGoogle: (req, res)=>{
         const credentials = req.body.credentials;
         const {email, sub, aud} = jwtDecode(credentials);

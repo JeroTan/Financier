@@ -13,5 +13,6 @@ export function view(filePath, res){
 
 //NEED listEndpoints
 export function printEndpoints(expressApp){
-    return listEndpoints(expressApp).map(x=>`${x.methods.join(",")} ${x.path} Controller:${x.middlewares.join(",")}`).join("\n");
+    //return listEndpoints(expressApp).map(x=>`${x.methods.join(",")} ${x.path} Controller:${x.middlewares.join(",")}`).join("\n");
+    return listEndpoints(expressApp).map(x=>`${x.methods.join(",")} ${x.path}`).join("\n");
 }
