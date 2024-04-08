@@ -1,4 +1,4 @@
-import { BrowserRouter, Route, Routes } from "react-router-dom"
+import { BrowserRouter, HashRouter, Route, Routes } from "react-router-dom"
 import {Main as MainPublic} from "../pages/Main"
 import Middleware from "./Middleware"
 import { Login } from "../pages/Login"
@@ -10,11 +10,12 @@ import AddFinance from "../pages/DashboardComp/AddFinance"
 import ConsumptionSourceList from "../pages/DashboardComp/ConsumptionSourceList"
 import ProfitSourceList from "../pages/DashboardComp/ProfitSourceList"
 import Profile from "../pages/DashboardComp/Profile"
+import { SetupUsername } from "../pages/SetupUsername"
 
 
 
 export default ()=>{
-    return <BrowserRouter>
+    return <HashRouter>
         <Routes>
             <Route path="/" element={
                 <Middleware guards="mustNotLogin" element={<MainPublic />} />
@@ -24,6 +25,9 @@ export default ()=>{
             } />
             <Route path="/signup" element={
                 <Middleware guards="mustNotLogin" element={<Signup />} />
+            } />
+             <Route path="/username" element={
+                <Middleware guards="loginRequired" element={<SetupUsername />} />
             } />
 
             {/*Dashboard */}
@@ -42,5 +46,5 @@ export default ()=>{
             {/**Not Found */}
             <Route path="/*" element={<NotFoundPage/>}/>
         </Routes>
-    </BrowserRouter>
+    </HashRouter>
 }

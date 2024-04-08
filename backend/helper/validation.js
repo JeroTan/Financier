@@ -213,13 +213,16 @@ export class Validation{
             }
         }
         const result = await doValidation();
+
         if(response === false){
             return result;
         }else{
             if(result!== true){
                 response.status(422).json( {[this.actualFieldName]: result} );
+                return true;
             }else{
                 response.sendStatus(200);
+                return false;
             }
         }
         

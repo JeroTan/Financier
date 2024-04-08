@@ -152,6 +152,9 @@ export class Pop{
         //Shorteners
 
         this.frame = {
+            close:{
+                isOpen: false,
+            },
             success:{
                 ...basicContent,
                 icon: "check",

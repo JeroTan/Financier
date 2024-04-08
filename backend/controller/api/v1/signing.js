@@ -64,12 +64,12 @@ export default {
             if(Object.keys(validateResult).length > 0)
                 return res.status(422).json(validateResult);
 
-            const id = await db("account").returning("id").insert({
+            const newAccount = await db("account").returning("id").insert({
                 username: username,
                 password: await hashData(password),
             })
-            const token = tokenAuth(id);
-            updateDbHashData(id, {username: username});
+            const token = tokenAuth(newAccount[0].id);
+            updateDbHashData(newAccount[0].id, {username: username});
             res.status(200).json({
                 result: "success",
                 token: token,
@@ -115,13 +115,14 @@ export default {
                 return;
             }
             const newUsername = createRandomUsername();
-            const newAccountId = await db("account").returning('id').insert({ 
+            const newAccount = await db("account").insert({ 
                 username:newUsername, 
                 email:email, password: 
                 await hashData(sub) 
-            });
-            const token = tokenAuth(newAccountId);
-            updateDbHashData(newAccountId, {username: newUsername});
+            }, ['id']);
+     
+            const token = tokenAuth(newAccount[0].id);
+            updateDbHashData(newAccount[0].id, {username: newUsername});
             res.status(200).json({
                 result: "needUsername",
                 token: token,
@@ -130,8 +131,23 @@ export default {
 
     },
     
-    updateUsername: (req, res)=>{
-        
+    setupUsername: (req, res)=>{
+        const {username} = req.body;
+
+        const valInst = new Validation(username, "username");
+        valInst.addActualField("username").required().regex(/^[a-zA-Z0-9\,\.\-\_\"\'\s]*$/).unique("account,username").max(32);
+
+        (async()=>{
+            const result = await valInst.validate();
+            if(result !== true){
+                return res.status(422).json(result);
+            }else{
+                const id = tokenRead(req.token).id;
+                await db("account").where({id:id}).update({username: username});
+                return res.sendStatus(200);
+            }
+        })();
+
     },
 
     verifyAuth: (req, res)=>{

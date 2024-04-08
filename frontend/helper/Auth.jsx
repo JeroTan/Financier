@@ -4,6 +4,13 @@ class Auth{
     storeToken(token){
         localStorage.setItem('token', token);
     }
+    tokenExist(){
+        if(localStorage.getItem('token') === null){
+            return false;
+        }
+        return true;
+
+    }
     getToken(){
         if(this.tokenExist()){
             return localStorage.getItem('token');
@@ -12,21 +19,16 @@ class Auth{
         
     }
     removeToken(){
-        if(this.tokenExist()){
-            localStorage.removeItem('token');
-        }
-    }
-    tokenExist(){
-        if(localStorage.getItem('token') === null){
+        if(localStorage.getItem('token') === null)
             return false;
-        }
-        return true;
-
+        
+        localStorage.removeItem('token');
     }
     verifyToken(){
         const ThisRemoveToken = this.removeToken;
+        const ThisTokenExist = this.tokenExist;
         return new Promise((resolve, reject)=>{
-            if(!this.tokenExist()){
+            if(!ThisTokenExist()){
                 return resolve(false);
             }
             ApiVerifyAuth().then(x=>{
@@ -41,4 +43,5 @@ class Auth{
     }
 }
 
+//CALL THIS
 export const auth = new Auth;

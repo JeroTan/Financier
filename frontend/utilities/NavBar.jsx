@@ -35,7 +35,7 @@ export default ()=>{
         </div>
         
         
-         <button className="bg-green" onClick={logout}>LogOut</button>
+         <button className="bg-green sm:me-5" onClick={logout}>Log Out</button>
     </NavHeader>
 }
 

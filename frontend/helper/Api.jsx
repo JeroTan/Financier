@@ -121,6 +121,11 @@ export async function ApiLogin(data){
     return await api.url('login').data(data).post().request()
 }
 
+export async function ApiSetupUsername(data){
+    const api = new ApiRequestPlate;
+    return await api.url('setupUsername').auth().data(data).post().request();
+}
+
 
 export async function ApiVerifySignUp(field, data){ //data in {} param means what fieldName
     const api = new ApiRequestPlate;

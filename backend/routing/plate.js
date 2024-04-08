@@ -21,6 +21,7 @@ function ExpressAppInitiator(){
         creadentials: true,
         optionsSuccessStatus: 200,
     }
+   
     app.use(bearerToken());
     app.use(cors(CORS));
     app.use(express.json());
@@ -89,6 +90,11 @@ ${printEndpoints(this.app)}
 
 
 //InHouse Helpers
+function requestLogger(req, res, next){
+    console.log(`${req.url} : ${getToday()}`);
+    next();
+}
+
 function createCallbackRequest(app, requestType, withPreLink = false){ //Callback must accept req, res
     return (route, callback, middlewares=[])=>{
 
@@ -110,19 +116,14 @@ function createCallbackRequest(app, requestType, withPreLink = false){ //Callbac
 
         }
 
-        const modCallback = (req, res)=>{//Define Additionals Here after running the controller;
-            console.log(`${req.url} : ${getToday()}`);
-            callback(req, res);
-        }
-
         if( Array.isArray(withPreLink) ){
             for(let i = 0; i < withPreLink.length; i++){
-                app.options(withPreLink[i]+route, ...middlewares, modCallback);
-                app[requestType](withPreLink[i]+route, ...middlewares, modCallback);
+                app.options(withPreLink[i]+route, ...middlewares, requestLogger, callback);
+                app[requestType](withPreLink[i]+route, ...middlewares, requestLogger, callback);
             }
             return;
         }
-        app.options(route, ...middlewares, modCallback);
-        app[requestType](route, ...middlewares, modCallback);
+        app.options(route, ...middlewares, requestLogger, callback);
+        app[requestType](route, ...middlewares, requestLogger, callback);
     };
 }
