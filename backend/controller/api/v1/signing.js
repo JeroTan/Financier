@@ -80,10 +80,10 @@ export default {
     
     verifySignup: (req, res)=>{
         const valInst = new Validation;
-        const param = req.query.field ?? "";
+        const field = req.query.field;
         const {username, password, confirmPassword} = req.body;
 
-        switch(param){
+        switch(field){
             case "username":
                 valInst.addInput(username).addField("Username").addActualField("username")
                     .required().regex(/^[a-zA-Z0-9\,\.\-\_\"\'\s]*$/).unique("account,username").max(32).validate(res);

@@ -26,3 +26,13 @@ export function optionalData(dataKey){ //the data will be filled with empty valu
         }
     }
 }
+
+export function optionalQuery(dataKey){
+    return (req, res, next)=>{
+        const result = getPostDataOpt(req.query, dataKey, res);
+        if(result){
+            req.query = result;
+            return next();
+        }
+    }
+}

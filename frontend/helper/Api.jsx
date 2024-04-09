@@ -141,3 +141,9 @@ export async function ApiVerifyAuth(token){
     const api = new ApiRequestPlate;
     return await api.url('verifyAuth').auth().data({token:token}).post().request();
 }
+
+//AddFinance
+export async function ApiSuggestWords(search){
+    const api = new ApiRequestPlate;
+    return await api.url('suggestWord').auth().params({search: search}).get().request();
+}

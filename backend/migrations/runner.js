@@ -4,8 +4,6 @@ import { financeTable } from "./_03_createFinance.js";
 
 //Import and call the migrations here
 const tables = [
-    accountTable,
-    loginTokenTable,
     financeTable,
 ];
 

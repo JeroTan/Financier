@@ -118,12 +118,12 @@ function createCallbackRequest(app, requestType, withPreLink = false){ //Callbac
 
         if( Array.isArray(withPreLink) ){
             for(let i = 0; i < withPreLink.length; i++){
-                app.options(withPreLink[i]+route, ...middlewares, requestLogger, callback);
+                app.options(withPreLink[i]+route, ...middlewares, callback);
                 app[requestType](withPreLink[i]+route, ...middlewares, requestLogger, callback);
             }
             return;
         }
-        app.options(route, ...middlewares, requestLogger, callback);
+        app.options(route, ...middlewares, callback);
         app[requestType](route, ...middlewares, requestLogger, callback);
     };
 }

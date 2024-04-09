@@ -249,10 +249,10 @@ export async function multiValidate(valInst){
     return errorData;
 }
 //Get the required Post Data Only else return a response 422 | 
-export function getPostData(body, requiredData, res){
+export function getPostData(data, requiredData, res){
     const missingData = {};
     requiredData.forEach(e => {
-        if(!Object.keys(body).includes(e))
+        if(!Object.keys(data).includes(e))
             missingData[e] = "Invalid Data";
     });
 
@@ -262,12 +262,12 @@ export function getPostData(body, requiredData, res){
         return false;
     }
     
-    return body;
+    return data;
 }
-export function getPostDataOpt(body, requiredData){
+export function getPostDataOpt(data, requiredData){
     requiredData.forEach(e => {
-        body[e] = body[e] ?? "";     
+        data[e] = data[e] ?? "";     
     });
 
-    return body;
+    return data;
 }
