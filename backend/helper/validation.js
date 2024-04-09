@@ -73,7 +73,42 @@ export class Validation{
         });
     }
     iNumber(argument=[], customMessage=false){
-        
+        return this.addValidateAction((resolve, reject)=>{
+            argument = anyToArr(argument, ",");
+            if(typeof this.input === "number"){
+                return resolve(true);
+            }
+
+            if(typeof this.input === "string" && !isNaN(this.input)){
+                return resolve(true);
+            }
+
+            if(customMessage){
+                return reject(this.createErrorMessage(customMessage));
+            }
+
+            reject(`${this.fieldName} is an invalid date.`);
+        });
+    }
+    iDate(argument=[], customMessage = false){
+        return this.addValidateAction((resolve, reject)=>{
+            argument = anyToArr(argument, ",");
+            if(this.input instanceof Date){
+                return resolve(true);
+            }
+
+            if(typeof this.input === "string" || typeof this.input === "number"){
+                if(new Date(this.input) != "Invalid Date"){
+                    return resolve(true);
+                }
+            }
+
+            if(customMessage){
+                return reject(this.createErrorMessage(customMessage));
+            }
+
+            reject(`${this.fieldName} is an invalid date.`);
+        });
     }
     unique(argument=[], customMessage=false){
         return this.addValidateAction((resolve, reject)=>{

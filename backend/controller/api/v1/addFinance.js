@@ -11,5 +11,18 @@ export const AddFinance = {
 
     verifyForm: (req, res)=>{
         const {field} = req.query;
+        const valInst = new Validation;
+        const {amount, amountFrom, description, time} = req.body;
+
+        switch(field){
+            case "amount":
+            break;
+            case "amountFrom":
+            break;
+            case "description":
+            break;
+            case "time":
+            break;
+        }
     }
 }
