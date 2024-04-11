@@ -1,7 +1,8 @@
 import { Outlet } from "react-router-dom";
 import PagePlate from "../utilities/PagePlate";
 import Icon from "../utilities/Icon";
-import { useCallback, useEffect, useReducer } from "react";
+import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
+import { propertyExclussion } from "../helper/ParseArgument";
 
 export function Dashboard(){
     return <PagePlate>
@@ -78,9 +79,15 @@ export function updateError(dataField, updater){
 
 
 export function InputComponent(props){
+    const inputRef = props?.inputRef;
+    const error = props?.error;
+    const newProps = propertyExclussion(["inputRef"], props);
+
+    
+
     return <>
-        <input type="text" className={`${props.error ? "my-field-error" : "my-field"} w-full bg-zinc-500`} {...props} />
-        <ErrorText message={props.error} />
+        <input type="text" className={`${error ? "my-field-error" : "my-field"} w-full bg-zinc-500`} {...newProps} ref={inputRef} />
+        <ErrorText message={error} />
     </>
 }
 
@@ -94,6 +101,10 @@ export function DropDownSuggestion(props){
     const api = props.api;
     const selection = props.selection;
     const active = props.active ?? true;
+
+    //NonState
+    let fetching = false;
+    let cacheInput = "";//use this to check if the search is still the same with the current input if same then empty this if not then you may fetch a new again after the other finish
     
     const [suggestion, suggestionCast] = useReducer((state, action)=>{
         const refState = structuredClone(state);
@@ -105,58 +116,51 @@ export function DropDownSuggestion(props){
                 if(refState.words.length > 0)
                     refState.words = [];
             break;
-            case "fetching":
-                refState.fetching = true;
-            break;
-            case "fetched":
-                refState.fetching = false;
-            break;
-            case "cacheInput":
-                refState.cacheInput = action.val;
-            break;
+           
         }
         return refState;
     },{
+        currentSelected: "",
         words: [],
-        fetching: false,
-        cacheInput: "",//use this to check if the search is still the same with the current input if same then empty this if not then you may fetch a new again after the other finish
     });
-
-    function clearSuggestion(){
-        suggestionCast({run:"clearWords"});
-    }
     
     function selectSuggestedWord(i){
         return (e)=>{
             selection(suggestion.words[i]);
-            clearSuggestion();
+            suggestionCast({run:"clearWords"});
         }
     }
     
-    const fetchSuggestion = useCallback((currentInput)=>{
-        if(suggestion.fetching)
+    
+    const fetchSuggestion = useCallback((searchWord)=>{
+        if(fetching)
             return;
+        fetching = true;
 
-        suggestionCast({run:"fetching"});
-        api(currentInput).then((x)=>{ //This is the API THING
-            if(suggestion.cacheInput !== currentInput)
-                fetchSuggestion(suggestion.cacheInput);
+        cacheInput = searchWord
+        api(searchWord).then((x)=>{ //This is the API THING
+            fetching = false;
+
+            if(cacheInput !== searchWord){
+                fetchSuggestion(searchWord);
+                return;
+            }
+                
 
             if(x.status === 200){
                 suggestionCast({run:"addWords", val:x.data});
             }
 
-            suggestionCast({run:"fetched"});
+            
         })
 
-    }, [suggestion.fetching, suggestion.cacheInput]);
+    }, [fetching, cacheInput]);
 
     //Fetch the word Changes or Update
     useEffect(()=>{
         if(!active)
             return;
-        
-        suggestionCast({run:"cacheInput", val:searchWord});
+            
         fetchSuggestion(searchWord)
     }, [searchWord]);
 
@@ -164,16 +168,16 @@ export function DropDownSuggestion(props){
         return "";
 
     return <>
-    <div className="absolute flex flex-col w-full rounded-b overflow-hidden bg-zinc-800">
-        {suggestion.fetching === false ? <>
-            {suggestion.words.length > 0 ? suggestion.words.map((x,i)=>{
-                return <div key={x} className="px-2 py-1 hover:bg-zinc-700 cursor-pointer" onClick={selectSuggestedWord(i)}>
-                    {x}
-                </div>
-            }) :""}
-        </>: <>
-            <span className="px-2 py-1 animate-pulse font-bold">. . .</span>
-        </>}
-    </div>
-    </>
+        <div className="absolute flex flex-col w-full rounded-b overflow-hidden bg-zinc-800">
+            {fetching === false ? <>
+                {suggestion.words.length > 0 ? suggestion.words.map((x,i)=>{
+                    return <div key={x} className="px-2 py-1 hover:bg-zinc-700 cursor-pointer" onPointerDown={selectSuggestedWord(i)}>
+                        {x}
+                    </div>
+                }) :""}
+            </>: <>
+                <span className="px-2 py-1 animate-pulse font-bold">. . .</span>
+            </>}
+        </div>
+        </>
 }

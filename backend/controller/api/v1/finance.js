@@ -10,8 +10,11 @@ export const Finance = {
     suggestWord: (req,res)=>{
         const {search} = req.query; //Make Filterer for query;
         (async()=>{
-            const result = await db("finance").pluck("amountFrom").whereRaw("LOWER(amountFrom) = ?", [`%${search}%`]).limit(10);
-            //This doesn't seems to work
+            if(search === ""){
+                return res.status(200).json([]);
+            }
+            const result = await db("finance").pluck("amountFrom").whereRaw("LOWER(amountFrom) LIKE ?", [`%${search.toLowerCase()}%`]).limit(10);
+            //This doesn't seems to work here
             res.status(200).json(result);
         })();
     },

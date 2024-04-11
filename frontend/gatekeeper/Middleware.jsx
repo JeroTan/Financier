@@ -100,7 +100,7 @@ function guardChecking(guards, helpers, i=0){
     });
 }
 
-//Insert Middleware Function here
+//-------------------------------------Insert Middleware Function here-----------------------------------------//
 const guardActions = {//Return a component of react router of wrong or invalid else return true
     loginRequired: async (helper= false, val=false)=>{
         return new Promise(resolve=>{

@@ -34,10 +34,9 @@ class Auth{
             ApiVerifyAuth().then(x=>{
                 if(x.status ===  200){
                     return resolve(true);
-                }else if(x.status === 401){
-                    ThisRemoveToken();
-                    return resolve(false);
                 }
+                ThisRemoveToken();
+                return resolve(false);
             });
         });
     }

@@ -41,3 +41,16 @@ export function getRegex(input){
     return input;
     
 }
+
+
+
+export function propertyExclussion(key, object){
+    const newObject = {...object};
+    key.forEach(e => {
+        if(newObject[key] != undefined){
+            delete(newObject[key]);
+        }
+    });
+
+    return newObject;
+}

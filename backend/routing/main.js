@@ -29,7 +29,7 @@ export class MainRouting extends RoutingPlate{
 
 
         //Add Finance
-        this.apiGET('/suggestWord', Finance.suggestWord, [verifyAuth, optionalQuery(["field"])] );
+        this.apiGET('/suggestWord', Finance.suggestWord, [verifyAuth, optionalQuery(["search"]) ] );
         this.apiPOST('/verifyForm', Finance.verifyForm, [verifyAuth, optionalQuery(["field"]), optionalData(["amount", "amountFrom", "description", "time"])] );
         this.apiPOST('/finance', Finance.add, [verifyAuth, requiredData(["amount", "amountFrom", "description", "time"]) ]);
 
