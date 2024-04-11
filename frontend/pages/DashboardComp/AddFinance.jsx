@@ -1,8 +1,8 @@
 import { useCallback, useContext, useEffect, useReducer, useRef, useState } from "react"
 import { GlobalConfigContext } from "../../utilities/GlobalConfig"
-import { AddButton, DashboardTitle, ToggleButton } from "../Dashboard";
+import { AddButton, DashboardTitle, DropDownSuggestion, InputComponent, ToggleButton, clearError, errorChecker, updateError } from "../Dashboard";
 import Icon from "../../utilities/Icon";
-import { ApiSuggestWords } from "../../helper/API";
+import { ApiAddFinance, ApiSuggestWords, ApiVerifyForm } from "../../helper/API";
 
 export default ()=>{
     //Global
@@ -21,7 +21,7 @@ export default ()=>{
 
 function FormInstancer(){
     //Instance Modifier
-    const [ form, formCast] = useReducer((state, action)=>{
+    const [ form, formCast ] = useReducer((state, action)=>{
         const refState = structuredClone(state);
         switch(action.run){
             case "add":
@@ -44,11 +44,27 @@ function FormInstancer(){
                 refState.instance[index].status = action.val;
             break;
             case "queueAll":
+                let startingPoint = true;
                 refState.instance = refState.instance.map(x=>{
-                    if(x.status == "editing" || x.status == "error")
+                    if( !(x.status == "editing" || x.status == "error") )
+                        return x;
+                    
+                    if(startingPoint){
+                        startingPoint = false;
+                        x.status = "processing";
+                    }else{
                         x.status = "queue";
+                    }
                     return x;
                 })
+            break;
+            case "nextForm":
+                for(let i = 0; i <  refState.instance.length; i++){
+                    if(refState.instance[i].status === "queue"){
+                        refState.instance[i].status = "processing";
+                        break;
+                    }
+                }
             break;
         }
 
@@ -61,8 +77,10 @@ function FormInstancer(){
 
     //Submit
     function submitData(e){
-
+        e.preventDefault();
+        formCast({run:"queueAll"})
     }
+
     function addMoreForm(e){
         formCast({run:"add"});
     }
@@ -71,16 +89,28 @@ function FormInstancer(){
             formCast({run:"remove", id:id});
         }
     }
+    function processForm(id){
+        //Make a next function here to tell if the thing is success or error
+        function next(status = "success"){
+            formCast({run:"changeStatus", id:id, val:status==="success"?"success":"error"});
+            formCast({run:"nextForm"});
+        }
+
+        return (formProcessCallback)=>{ //The callback provided must have next parameter
+            console.log(id);
+            formProcessCallback(next);
+        }
+    }
 
     return <form className="" onSubmit={submitData}>
         <div className="flex flex-col gap-5 py-5">
             {  form.instance.map((x, y)=>{
-                return <Form key={x.id} id={x.id} index={y+1} status={x.status} removeForm={removeForm(x.id)} />
+                return <Form key={x.id} id={x.id} index={y+1} status={x.status} removeForm={removeForm(x.id)} processForm={processForm(x.id)} />
             }) }
         </div>
         <div className="flex gap-2 flex-wrap">
             <AddButton onClick={addMoreForm} />
-            <button className=" my-main-btn-big">
+            <button type="submit" className=" my-main-btn-big">
                 Submit
             </button>
         </div>
@@ -88,7 +118,7 @@ function FormInstancer(){
     </form>
 }
 
-function Form({id, index, status, removeForm}){
+function Form({id, index, status, removeForm, processForm}){
     //Data Modifier
     const [ data, dataCast ] = useReducer((state, action)=>{
         const refState = structuredClone(state);
@@ -117,12 +147,40 @@ function Form({id, index, status, removeForm}){
         };
         return refState;
     }, {
-        amount: {value: -0, error:""},
+        amount: {value: "", error:""},
         amountSign: {value: false, error:""},//Gain or Expense //This will not be sent to backend
         amountFrom: {value: "", error:""},
         description: {value: "", error:""},
         time: {value: "", error:""},
     });
+
+    //UploadForm
+    useEffect(()=>{
+        if(status != "processing")
+            return;
+
+        processForm((next)=>{
+            const sendData = {
+                amount: data.amount.value,
+                amountFrom: data.amountFrom.value,
+                description: data.description.value,
+                time: data.time.value
+            };
+            ApiAddFinance(sendData).then(x=>{
+                if(x.status == "200"){
+                    clearError(sendData, dataCast);
+                    next();
+                }else{
+                    if(x?.data)
+                        updateError(x.data, dataCast);
+                    next("error");
+
+                }
+            })
+        })
+    }, [status]);
+
+
 
     return <main className=" rounded bg-zinc-900/50 overflow-hidden">
         <div className="sm:px-3 px-2 py-2 flex bg-zinc-900/75">
@@ -148,7 +206,7 @@ function Form({id, index, status, removeForm}){
 
 function AddAmountInput(props){
     const [data, dataCast] = props.mod;
-    const [amount, amountSign] = [data.amount.value, data.amountSign.value];
+    const [amount, amountSign, amountError] = [data.amount.value, data.amountSign.value, data.amount.error];
 
 
     function updateAmountSign(e){
@@ -156,8 +214,10 @@ function AddAmountInput(props){
         dataCast({run:"updateSign", val:value});
     }
     function updateAmount(e){
-        const {value} = e.target;
+        const value = Number(e.target.value);
+        e.target.value = value;
         dataCast({run:"updateAmount", val:value});
+        errorChecker(ApiVerifyForm, {amount:value}, dataCast);
     }   
 
     return <>
@@ -166,7 +226,7 @@ function AddAmountInput(props){
         </div>
         <div className="mb-2">
             <label className="ml-1">Amount:</label>
-            <input type="number" className="my-field w-full bg-zinc-500" placeholder="10,000" value={amount} onInput={updateAmount} />
+            <InputComponent type="number" value={amount} placeholder="10,000" onInput={updateAmount} error={amountError}  />
         </div>
 
     </>
@@ -176,113 +236,63 @@ function AddAmountFrom(props){
     //Global
     const [data, dataCast] = props.mod;
     const amountFrom = data.amountFrom.value;
-    
-    //DOM Reference
-    const Input = useRef();
-
-    const [suggestion, suggestionCast] = useReducer((state, action)=>{
-        const refState = structuredClone(state);
-        switch(action.run){
-            case "addWords":
-                refState.words = action.val;
-            break;
-            case "clearWords":
-                if(refState.words.length > 0)
-                    refState.words = [];
-            break;
-            case "fetching":
-                refState.fetching = true;
-            break;
-            case "fetched":
-                refState.fetching = false;
-            break;
-            case "cacheInput":
-                refState.cacheInput = action.val;
-            break;
-        }
-        return refState;
-    },{
-        words: [],
-        fetching: false,
-        cacheInput: "",//use this to check if the search is still the same with the current input if same then empty this if not then you may fetch a new again after the other finish
-    });
+    const amountFromError = data.amountFrom.error;
 
     function update(e){
         const {value} = e.target;
         dataCast({run:"updateValue", key:"amountFrom", val:value});
-        suggestionCast({run:"cacheInput", val:value});
-        fetchSuggestion(value);
+        errorChecker(ApiVerifyForm, {amountFrom:value}, dataCast);
     }
 
-    const fetchSuggestion = useCallback((currentInput)=>{
-        if(suggestion.fetching === true)
-            return;
-
-        suggestionCast({run:"fetching"});
-        ApiSuggestWords(currentInput).then((x)=>{
-            suggestionCast({run:"fetched"});
-
-            if(suggestion.cacheInput !== currentInput)
-                fetchSuggestion(suggestion.cacheInput);
-
-            if(x.status === 200){
-                suggestionCast({run:"addWords", val:x.data});
-            }
-        })
-
-    }, [suggestion.fetching, suggestion.cacheInput]);
-
-    function selectSuggestedWord(i){
-        return (e)=>{
-            dataCast({run:"updateValue", key:"amountFrom", val: suggestion.words[i] });
-            clearSuggestion(e);
-        }
+    function selectSuggestedWord(data){
+        dataCast({run:"updateValue", key:"amountFrom", val: data });
     }
-    function clearSuggestion(e){
-        suggestionCast({run:"clearWords"});
-    }
+
+    const [ suggestion, suggestionSet ] = useState(false); //Use to close and open suggestion
 
     return <>
         <div className="mb-2 relative">
             <label className="ml-1">From:</label>
-            <input onBlur={clearSuggestion} ref={Input} tabIndex={0} className="my-field w-full bg-zinc-500" placeholder="Lottery" value={amountFrom} onInput={update} />
-            <div className="absolute flex flex-col w-full rounded-b overflow-hidden bg-zinc-800">
-                
-                {suggestion.fetching === false ? <>
-                    {suggestion.words.length > 0 ? suggestion.words.map((x,i)=>{
-                        return <div key={x} className="px-2 py-1 hover:bg-zinc-700 cursor-pointer" onClick={selectSuggestedWord(i)}>
-                            {x}
-                        </div>
-                    }) :""}
-                </>: <>
-                    <span className="px-2 py-1 animate-pulse font-bold">. . .</span>
-                </>}
-            </div>
+            <InputComponent onBlur={()=>suggestionSet(false)} onFocus={()=>suggestionSet(true)} placeholder="Lottery" value={amountFrom} onInput={update} error={amountFromError}  />
+            <DropDownSuggestion api={ApiSuggestWords} searchWord={amountFrom} selection={selectSuggestedWord} active={suggestion} />
         </div>
     </>
 }
 
 function AddDescription(props){
+    const [data, dataCast] = props.mod;
+    const description = data.description.value;
+    const descriptionError = data.description.error;
+
+    function update(e){
+        const {value} = e.target;
+        dataCast({run:"updateValue", key:"description", val:value});
+        errorChecker(ApiVerifyForm, {description:value}, dataCast);
+    } 
+
     return <>
         <label>Description</label>
-        <textarea className="my-text-area w-full mt-1" rows={5}  placeholder="I bought a new card."></textarea>
-        
+        <textarea className="my-text-area w-full mt-1" rows={5}  placeholder="I bought a new card." value={description} onInput={update}></textarea>
+        <small className=" my-error-text">{descriptionError}</small>
     </>
 }
 
 function AddTime(props){
     const [data, dataCast] = props.mod;
     const time = data.time.value;
+    const timeError = data.time.error;
 
     function update(e){
         const {value} = e.target;
         dataCast({run:"updateValue", key:"time", val:value});
+        errorChecker(ApiVerifyForm, {time:value}, dataCast);
     } 
 
     return <>
         <div className="mb-2">
             <label className="ml-1">Time:</label>
-            <input type="datetime-local" className="my-field w-full bg-zinc-500" value={time} onInput={update} />
+            <InputComponent type="datetime-local" value={time} onInput={update} error={timeError}  />
         </div>
     </>
 }
+

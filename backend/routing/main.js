@@ -4,7 +4,7 @@ import { RoutingPlate } from "./plate.js";
 //Controller Import
 import MainPage from "../controller/web/main.js";
 import Signing from "../controller/api/v1/signing.js";
-import { AddFinance } from "../controller/api/v1/addfinance.js";
+import { Finance } from "../controller/api/v1/finance.js";
 import { optionalData, optionalQuery, requiredData, verifyAuth } from "./middleware.js";
 
 
@@ -20,7 +20,7 @@ export class MainRouting extends RoutingPlate{
         this.apiPOST('/loginGoogle', Signing.loginGoogle);
         this.apiPOST('/setupUsername', Signing.setupUsername,  [verifyAuth, optionalData(["username"]) ]);
 
-        this.apiPOST('/verifySignup', Signing.verifySignup, [optionalQuery(["field"])]);
+        this.apiPOST('/verifySignup', Signing.verifySignup, [optionalQuery(["field"]), optionalData(["username", "password", "confirmPassword"])]);
         this.apiPOST('/signup', Signing.signup,  [ requiredData(["username", "password", "confirmPassword"]) ]);
 
         this.apiPOST('/login', Signing.login, [ requiredData(["username", "password"]) ]);
@@ -29,7 +29,9 @@ export class MainRouting extends RoutingPlate{
 
 
         //Add Finance
-        this.apiGET('/suggestWord', AddFinance.suggestWord, [verifyAuth, optionalQuery(["field"])] );
+        this.apiGET('/suggestWord', Finance.suggestWord, [verifyAuth, optionalQuery(["field"])] );
+        this.apiPOST('/verifyForm', Finance.verifyForm, [verifyAuth, optionalQuery(["field"]), optionalData(["amount", "amountFrom", "description", "time"])] );
+        this.apiPOST('/finance', Finance.add, [verifyAuth, requiredData(["amount", "amountFrom", "description", "time"]) ]);
 
     }
 }

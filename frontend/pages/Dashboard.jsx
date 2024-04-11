@@ -1,6 +1,7 @@
 import { Outlet } from "react-router-dom";
 import PagePlate from "../utilities/PagePlate";
 import Icon from "../utilities/Icon";
+import { useCallback, useEffect, useReducer } from "react";
 
 export function Dashboard(){
     return <PagePlate>
@@ -51,5 +52,128 @@ export function ToggleButton(props){
                 </button>
             })) }
         </div>
+    </>
+}
+
+export function errorChecker(api, dataField, updater){
+    api(Object.keys(dataField)[0], dataField).then(x=>{
+        if(x.status == "200"){
+            clearError(dataField, updater);
+        }else if(x.status == "422"){
+            updateError(x.data, updater);
+        }
+    });
+}
+
+export function clearError(dataField, updater){
+    Object.keys(dataField).forEach(thisField=>{
+        updater({run:"updateError", key:thisField, val:""})
+    });
+}
+export function updateError(dataField, updater){
+    Object.keys(dataField).forEach(thisField=>{
+        updater({run:"updateError", key:thisField, val:dataField[thisField]})
+    });
+}
+
+
+export function InputComponent(props){
+    return <>
+        <input type="text" className={`${props.error ? "my-field-error" : "my-field"} w-full bg-zinc-500`} {...props} />
+        <ErrorText message={props.error} />
+    </>
+}
+
+export function ErrorText(props){
+    const message = props.message;
+    return <small className=" my-error-text">{message}</small>
+}
+
+export function DropDownSuggestion(props){
+    const searchWord = props.searchWord;
+    const api = props.api;
+    const selection = props.selection;
+    const active = props.active ?? true;
+    
+    const [suggestion, suggestionCast] = useReducer((state, action)=>{
+        const refState = structuredClone(state);
+        switch(action.run){
+            case "addWords":
+                refState.words = action.val;
+            break;
+            case "clearWords":
+                if(refState.words.length > 0)
+                    refState.words = [];
+            break;
+            case "fetching":
+                refState.fetching = true;
+            break;
+            case "fetched":
+                refState.fetching = false;
+            break;
+            case "cacheInput":
+                refState.cacheInput = action.val;
+            break;
+        }
+        return refState;
+    },{
+        words: [],
+        fetching: false,
+        cacheInput: "",//use this to check if the search is still the same with the current input if same then empty this if not then you may fetch a new again after the other finish
+    });
+
+    function clearSuggestion(){
+        suggestionCast({run:"clearWords"});
+    }
+    
+    function selectSuggestedWord(i){
+        return (e)=>{
+            selection(suggestion.words[i]);
+            clearSuggestion();
+        }
+    }
+    
+    const fetchSuggestion = useCallback((currentInput)=>{
+        if(suggestion.fetching)
+            return;
+
+        suggestionCast({run:"fetching"});
+        api(currentInput).then((x)=>{ //This is the API THING
+            if(suggestion.cacheInput !== currentInput)
+                fetchSuggestion(suggestion.cacheInput);
+
+            if(x.status === 200){
+                suggestionCast({run:"addWords", val:x.data});
+            }
+
+            suggestionCast({run:"fetched"});
+        })
+
+    }, [suggestion.fetching, suggestion.cacheInput]);
+
+    //Fetch the word Changes or Update
+    useEffect(()=>{
+        if(!active)
+            return;
+        
+        suggestionCast({run:"cacheInput", val:searchWord});
+        fetchSuggestion(searchWord)
+    }, [searchWord]);
+
+    if(!active)
+        return "";
+
+    return <>
+    <div className="absolute flex flex-col w-full rounded-b overflow-hidden bg-zinc-800">
+        {suggestion.fetching === false ? <>
+            {suggestion.words.length > 0 ? suggestion.words.map((x,i)=>{
+                return <div key={x} className="px-2 py-1 hover:bg-zinc-700 cursor-pointer" onClick={selectSuggestedWord(i)}>
+                    {x}
+                </div>
+            }) :""}
+        </>: <>
+            <span className="px-2 py-1 animate-pulse font-bold">. . .</span>
+        </>}
+    </div>
     </>
 }

@@ -1,5 +1,5 @@
 import { db } from "../migrations/define.js";
-import { getRegex, anyToArr } from "./parseArguments.js";
+import { getRegex, anyToArr, capitalFirst } from "./parseArguments.js";
 
 
 /*****************TEMPLATE //Do not touch *********************/
@@ -19,8 +19,8 @@ export class Validation{
         this.fieldName = d;
         return this;
     }
-    addActualField(d){
-        this.actualFieldName = d;
+    addNameAttribute(d){
+        this.nameAttribute = d;
         return this;
     }
     //--Setter--//
@@ -36,9 +36,12 @@ export class Validation{
     }
     createErrorMessage(d){
         if(typeof(d) === "function"){
-            return d(this.addField);//Allow them to have a callback to get the field name;
+            return d(this.nameAttribute ?? this.fieldName);//Allow them to have a callback to get the field name;
         }
         return d;
+    }
+    getFieldName(){
+        return this.nameAttribute ?? capitalFirst(this.fieldName);
     }
     //--Internal--//
 
@@ -54,11 +57,11 @@ export class Validation{
                 return reject(this.createErrorMessage(customMessage));
             }
             
-            reject(`${this.fieldName} is required.`);
+            reject(`${this.getFieldName()} is required.`);
             
         });
     }
-    iString(argument=[], customMessage=false){//Check if string
+    string(argument=[], customMessage=false){//Check if string
         return this.addValidateAction((resolve, reject)=>{
             if(typeof this.input === "string"){
                 return resolve(true);
@@ -68,11 +71,11 @@ export class Validation{
                 return reject(this.createErrorMessage(customMessage));
             }
             
-            reject(`${this.fieldName} is not a string.`);
+            reject(`${this.getFieldName()} is not a string.`);
             
         });
     }
-    iNumber(argument=[], customMessage=false){
+    number(argument=[false], customMessage=false){
         return this.addValidateAction((resolve, reject)=>{
             argument = anyToArr(argument, ",");
             if(typeof this.input === "number"){
@@ -80,6 +83,8 @@ export class Validation{
             }
 
             if(typeof this.input === "string" && !isNaN(this.input)){
+                if(argument[0])
+                    this.input =  Number(this.input);
                 return resolve(true);
             }
 
@@ -87,10 +92,10 @@ export class Validation{
                 return reject(this.createErrorMessage(customMessage));
             }
 
-            reject(`${this.fieldName} is an invalid date.`);
+            reject(`${this.getFieldName()} is an invalid date.`);
         });
     }
-    iDate(argument=[], customMessage = false){
+    date(argument=[], customMessage = false){
         return this.addValidateAction((resolve, reject)=>{
             argument = anyToArr(argument, ",");
             if(this.input instanceof Date){
@@ -107,7 +112,7 @@ export class Validation{
                 return reject(this.createErrorMessage(customMessage));
             }
 
-            reject(`${this.fieldName} is an invalid date.`);
+            reject(`${this.getFieldName()} contains invalid date.`);
         });
     }
     unique(argument=[], customMessage=false){
@@ -144,7 +149,7 @@ export class Validation{
                 return reject(this.createErrorMessage(customMessage));
             }
             
-            reject(`${this.fieldName} is invalid.`);
+            reject(`${this.getFieldName()} is invalid.`);
         });
     }
     notRegex(argument=[], customMessage=false){
@@ -163,7 +168,7 @@ export class Validation{
                 return reject(this.createErrorMessage(customMessage));
             }
             
-            reject(`${this.fieldName} is invalid.`);
+            reject(`${this.getFieldName()} is invalid.`);
         });
     }
     max(argument=[], customMessage=false){
@@ -181,12 +186,12 @@ export class Validation{
             }
 
             if(typeof this.input === "string")
-                reject(`${this.fieldName} exceeded the character limit of ${argument[0]}.`);
+                reject(`${this.getFieldName()} exceeded the character limit of ${argument[0]}.`);
             else if(typeof this.input === "number"){
-                reject(`${this.fieldName} must be no more than ${argument[0]}.`);
+                reject(`${this.getFieldName()} must be no more than ${argument[0]}.`);
             }
             else{
-                reject(`${this.fieldName} exceeded the limit of ${argument[0]}.`)
+                reject(`${this.getFieldName()} exceeded the limit of ${argument[0]}.`)
             }
         });
     }
@@ -204,12 +209,12 @@ export class Validation{
             }
 
             if(typeof this.input === "string")
-                reject(`${this.fieldName} must be at least ${argument[0]} character length.`);
+                reject(`${this.getFieldName()} must be at least ${argument[0]} character length.`);
             else if(typeof this.input === "number"){
-                reject(`${this.fieldName} must be less than ${argument[0]}.`);
+                reject(`${this.getFieldName()} must be less than ${argument[0]}.`);
             }
             else{
-                reject(`${this.fieldName} must be minium of; ${argument[0]}.`);
+                reject(`${this.getFieldName()} must be minium of; ${argument[0]}.`);
             }
         });
     }
@@ -223,7 +228,7 @@ export class Validation{
                 return reject(this.createErrorMessage(customMessage));
             }
 
-            reject(`${this.fieldName} is not the same with ${argument[0].fieldName}`);
+            reject(`${this.getFieldName()} is not the same with ${argument[0].fieldName}`);
         });
     }
 
@@ -248,12 +253,11 @@ export class Validation{
             }
         }
         const result = await doValidation();
-
         if(response === false){
             return result;
         }else{
             if(result!== true){
-                response.status(422).json( {[this.actualFieldName]: result} );
+                response.status(422).json( {[this.fieldName]: result} );
                 return true;
             }else{
                 response.sendStatus(200);
@@ -276,8 +280,9 @@ export async function multiValidate(valInst){
 
     for(const v of valInst){
         const result = await v.validate();
+
         if(result !== true){
-            errorData[v.actualFieldName] = result;
+            errorData[v.fieldName] = result;
         }   
     }
 

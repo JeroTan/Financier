@@ -1,6 +1,6 @@
 export function anyToArr(input, strSplitter = ","){
     try{
-        if( !(typeof input === "string" || Array.isArray(input) || typeof input === "number" || input instanceof RegExp) ){
+        if( !(typeof input === "string" || Array.isArray(input) || typeof input === "number" || typeof input === "boolean" || input instanceof RegExp) ){
             throw new Error;
         }
     }catch(e){
@@ -10,11 +10,9 @@ export function anyToArr(input, strSplitter = ","){
     let arrayResult = [];
     if(Array.isArray(input)){
         arrayResult = input;
-    }else if(typeof input === "number"){
-        arrayResult = [input.toString()];
     }else if(typeof input === "string"){
         arrayResult = input.split(strSplitter);
-    }else if(input instanceof RegExp){
+    }else if(input instanceof RegExp || typeof input === "boolean" || typeof input === "number"){
         arrayResult = [input];
     }
     for(let i = 0; i < arrayResult.length; i++){
@@ -39,5 +37,8 @@ export function getRegex(input){
     if(typeof input === "object")
         return new RegExp(input);
     return input;
-    
+}
+
+export function capitalFirst(theString){
+    return theString[0].toUpperCase() + theString.substring(1);
 }

@@ -52,11 +52,11 @@ export default {
         const {username, password, confirmPassword} = req.body;
 
         const valInst = generateValidateInstance(3);
-        valInst[0].addInput(username).addField("Username").addActualField("username")
+        valInst[0].addInput(username).addField("username")
             .required().regex(/^[a-zA-Z0-9\,\.\-\_\"\'\s]*$/).unique("account,username").max(32);
-        valInst[1].addInput(password).addField("Password").addActualField("password")
+        valInst[1].addInput(password).addField("password")
             .required().min(8).max(128);
-        valInst[2].addInput(confirmPassword).addField("Confirm Password").addActualField("confirmPassword")
+        valInst[2].addInput(confirmPassword).addField("confirmPassword").addNameAttribute("Confirm Password")
             .required().same([valInst[1]]);
         
         (async()=>{
@@ -85,16 +85,16 @@ export default {
 
         switch(field){
             case "username":
-                valInst.addInput(username).addField("Username").addActualField("username")
+                valInst.addInput(username).addField("username")
                     .required().regex(/^[a-zA-Z0-9\,\.\-\_\"\'\s]*$/).unique("account,username").max(32).validate(res);
             break;
             case "password":
-                valInst.addInput(password).addField("Password").addActualField("password")
+                valInst.addInput(password).addField("password")
                     .required().min(8).max(128).validate(res);
             break;
             case "confirmPassword":
                 const valInst2 = new Validation(password, "Password");
-                valInst.addInput(confirmPassword).addField("Confirm Password").addActualField("confirmPassword")
+                valInst.addInput(confirmPassword).addField("confirmPassword").addNameAttribute("Confirm Password")
                     .required().same([valInst2]).validate(res);
             break;
         }
