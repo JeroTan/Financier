@@ -97,7 +97,6 @@ function FormInstancer(){
         }
 
         return (formProcessCallback)=>{ //The callback provided must have next parameter
-            console.log(id);
             formProcessCallback(next);
         }
     }
