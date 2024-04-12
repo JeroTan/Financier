@@ -32,7 +32,7 @@ html { height:100%; }
 
 
 .my-header-big{
-    @apply text-4xl font-bold text-yellow-400;
+    @apply text-4xl font-bold text-yellow-500;
 }
 
 .my-big-text{
@@ -40,7 +40,7 @@ html { height:100%; }
 }
 
 .my-field{
-    @apply bg-transparent outline-none stroke-none border-x-0 border-t-0 focus:border-b-4 focus:border-b-zinc-200 hover:border-b-zinc-200 border-b-2 px-1 pb-1 border-b-zinc-500 delay-100 placeholder:text-slate-700;
+    @apply bg-transparent text-zinc-500 focus:text-zinc-300 outline-none stroke-none border-x-0 border-t-0 focus:border-b-[3px] focus:border-b-zinc-200 hover:border-b-zinc-200 border-b-2 pb-1 border-b-zinc-500 delay-100 placeholder:text-slate-700;
 }
 
 .my-text-area{
@@ -48,14 +48,14 @@ html { height:100%; }
 }
 
 .my-field-error{
-    @apply bg-transparent outline-none stroke-none border-x-0 border-t-0 focus:border-b-4 focus:border-b-red-600 hover:border-b-red-600 border-b-2 px-1 pb-1 border-b-red-500 delay-100 placeholder:text-slate-700;
+    @apply bg-transparent text-zinc-500 focus:text-zinc-300 outline-none stroke-none border-x-0 border-t-0 focus:border-b-[3px] focus:border-b-red-600 hover:border-b-red-600 border-b-2 pb-1 border-b-red-500 delay-100 placeholder:text-slate-700;
 }
 
 .my-main-btn-big{
-    @apply px-5 py-2 bg-yellow-400 rounded-full text-zinc-900 font-semibold hover:bg-yellow-500 focus:outline-2 focus:outline-none;
+    @apply px-5 py-2 bg-yellow-500 rounded-full text-zinc-900 font-semibold hover:bg-yellow-500 focus:outline-2 focus:outline-none;
 }
 .my-main-btn-outline-big{
-    @apply px-5 py-2 border border-yellow-400 rounded-full text-zinc-300 font-semibold hover:bg-yellow-500/75 focus:outline-none;
+    @apply px-5 py-2 border border-yellow-500 rounded-full text-zinc-300 font-semibold hover:bg-yellow-500/75 focus:outline-none;
 }
 
 .my-error-text{

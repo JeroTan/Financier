@@ -225,7 +225,7 @@ function AddAmountInput(props){
             <ToggleButton data={ [{value:false, name:"Expense"}, {value:true, name:"Gain"}] } currentValue={amountSign} callback={updateAmountSign} />
         </div>
         <div className="mb-2">
-            <label className="ml-1">Amount:</label>
+            <label>Amount:</label>
             <InputComponent type="number" value={amount} placeholder="10,000" onInput={updateAmount} error={amountError}  />
         </div>
 
@@ -252,7 +252,7 @@ function AddAmountFrom(props){
 
     return <>
         <div className="mb-2 relative">
-            <label className="ml-1">From:</label>
+            <label>From:</label>
             <InputComponent onBlur={()=>suggestionSet(false)} onFocus={()=>suggestionSet(true)} placeholder="Lottery" value={amountFrom} onInput={update} error={amountFromError}  />
             <DropDownSuggestion api={ApiSuggestWords} searchWord={amountFrom} selection={selectSuggestedWord} active={suggestion} />
         </div>
@@ -290,7 +290,7 @@ function AddTime(props){
 
     return <>
         <div className="mb-2">
-            <label className="ml-1">Time:</label>
+            <label>Time:</label>
             <InputComponent type="datetime-local" value={time} onInput={update} error={timeError}  />
         </div>
     </>

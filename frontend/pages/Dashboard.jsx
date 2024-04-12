@@ -23,7 +23,7 @@ function Container(props){
 export function DashboardTitle({title}){
     return <>
     <div className=" w-fit border-b-2 rounded border-zinc-200 px-4  py-2 mb-8">
-        <h1 className="md:text-4xl sm:text-2xl text-xl font-semibold  text-yellow-400">{title}</h1>
+        <h1 className="md:text-4xl sm:text-2xl text-xl font-semibold  text-yellow-500">{title}</h1>
     </div>
     </>
 }
@@ -34,7 +34,7 @@ export function AddButton(props){
             <div className=" overflow-hidden opacity-0 group-hover:opacity-100 absolute group-hover:w-24 group-hover:pl-11 h-10 flex px-1 items-center rounded-full border-2 border-yellow-500">
                 <span className="text-zinc-300">Add</span>
             </div>
-            <Icon name="add" outClass="w-10 h-10 absolute" inClass="fill-yellow-400" />
+            <Icon name="add" outClass="w-10 h-10 absolute" inClass="fill-yellow-500" />
         </div>
     </>
 }
@@ -46,7 +46,7 @@ export function ToggleButton(props){
             { data.map((x=>{
                 return <button key={x.value} 
                     type="button" 
-                    className={`px-3 pt-2 pb-1 ${currentValue == x.value ? " border-b-4 border-yellow-400" : ""}`} 
+                    className={`px-3 pt-2 pb-1 ${currentValue == x.value ? " border-b-4 border-yellow-500" : ""}`} 
                     value={x.value.toString()}
                 >
                     {x.name}
