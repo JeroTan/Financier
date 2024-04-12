@@ -44,6 +44,29 @@ export const Finance = {
         }
     },
 
+    get: (req, res)=>{
+        const {dateFrom, dateTo} = req.query;
+        const valInst = generateValidateInstance(2);
+        const accountId = tokenRead(req.token).id;
+        
+        valInst[0].addInput(dateFrom).addField("dateFrom")
+            .required().date();
+        valInst[1].addInput(dateTo).addField("dateTo")
+            .required().date();
+
+        (async ()=>{
+            const dateFromResult = await valInst[0].validate();
+            const dateToResult =  await valInst[1].validate();
+
+            const dateFromFinal = dateFromResult===true ? new Date(dateFrom) : new Date(0);
+            const dateToFinal = dateToResult===true ? new Date(dateTo) : new Date(new Date().setHours(24));
+
+            const result = await db("finance").select('id', 'amountWhole', 'amountDecimal', 'amountSign', 'amountFrom', 'description', 'time').where({accountId: accountId}).whereBetween("time", [dateFromFinal.toISOString(), dateToFinal.toISOString()]);
+
+            res.status(200).json(result);
+        })();
+    },
+
     add: (req, res)=>{
         const {amount, amountFrom, description, time} = req.body;
         const accountId = tokenRead(req.token).id;

@@ -1,8 +1,9 @@
 import { Outlet } from "react-router-dom";
 import PagePlate from "../utilities/PagePlate";
 import Icon from "../utilities/Icon";
-import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
-import { propertyExclussion } from "../helper/ParseArgument";
+import { Fragment, useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
+import { propertyExclusion } from "../helper/ParseArgument";
+import e from "cors";
 
 export function Dashboard(){
     return <PagePlate>
@@ -37,6 +38,25 @@ export function AddButton(props){
             <Icon name="add" outClass="w-10 h-10 absolute" inClass="fill-yellow-500" />
         </div>
     </>
+}
+
+export function RoundedContent(props){
+    const children = props.children;
+    const className = props.className;
+    const refineProps = propertyExclusion(["body", "className"], props);
+
+    return <div className={`w-fit flex items-center gap-2 rounded-full px-4 py-1 bg-zinc-900/50 ${className}`} {...refineProps}>
+        {children}
+    </div>
+}
+export function CurveEdgeContent(props){
+    const children = props.children;
+    const className = props.className;
+    const refineProps = propertyExclusion(["body", "className"], props);
+
+    return <div className={`w-fit flex items-center gap-2 rounded px-4 py-1 bg-zinc-900/50 ${className}`} {...refineProps}>
+        {children}
+    </div>
 }
 
 export function ToggleButton(props){
@@ -81,12 +101,12 @@ export function updateError(dataField, updater){
 export function InputComponent(props){
     const inputRef = props?.inputRef;
     const error = props?.error;
-    const newProps = propertyExclussion(["inputRef"], props);
+    const refineProps = propertyExclusion(["inputRef"], props);
 
     
 
     return <>
-        <input type="text" className={`${error ? "my-field-error" : "my-field"} w-full bg-zinc-500`} {...newProps} ref={inputRef} />
+        <input type="text" className={`${error ? "my-field-error" : "my-field"} w-full bg-zinc-500`} {...refineProps} ref={inputRef} />
         <ErrorText message={error} />
     </>
 }
@@ -180,4 +200,33 @@ export function DropDownSuggestion(props){
             </>}
         </div>
         </>
+}
+
+export function DropDown(props){
+    const data = props.data;
+    const active = props.active;
+    const selection = props.selection;
+
+    if(!active)
+        return "";
+
+    function selectItem(data){
+        return (e)=>{
+            selection(data);
+        }
+    }
+
+    return <>
+        <ul className=" absolute w-full bottom-0 translate-y-[100%] rounded overflow-hidden bg-zinc-900/50">
+        { data.length && data.map(x=>{
+            return <Fragment key={x}>
+                <li className=" hover:bg-zinc-700/75 px-4 py-2 cursor-pointer" onPointerDown={selectItem(x)}>
+                    {x}
+                </li>
+            </Fragment>
+        })}
+        </ul>
+        
+    </>
+
 }

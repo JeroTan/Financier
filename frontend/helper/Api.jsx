@@ -149,9 +149,14 @@ export async function ApiSuggestWords(search){
 }
 export async function ApiVerifyForm(field, data){
     const api = new ApiRequestPlate;
-    return await api.url('verifyForm').auth().params({field, field}).data(data).post().request();
+    return await api.url('verifyForm').auth().params({field: field}).data(data).post().request();
 }
 export async function ApiAddFinance(data){
     const api = new ApiRequestPlate;
     return await api.url('finance').auth().data(data).post().request();
+}
+
+export async function ApiGetFinance(dateFrom, dateTo, ){
+    const api = new ApiRequestPlate;
+    return await api.url('finance').auth().params({dateFrom:dateFrom, dateTo:dateTo}).get().request();
 }

@@ -147,7 +147,7 @@ function Form({id, index, status, removeForm, processForm}){
         return refState;
     }, {
         amount: {value: "", error:""},
-        amountSign: {value: false, error:""},//Gain or Expense //This will not be sent to backend
+        amountSign: {value: false, error:""},//Earn or Expense //This will not be sent to backend
         amountFrom: {value: "", error:""},
         description: {value: "", error:""},
         time: {value: "", error:""},
@@ -221,7 +221,7 @@ function AddAmountInput(props){
 
     return <>
         <div className="mb-4">
-            <ToggleButton data={ [{value:false, name:"Expense"}, {value:true, name:"Gain"}] } currentValue={amountSign} callback={updateAmountSign} />
+            <ToggleButton data={ [{value:false, name:"Expense"}, {value:true, name:"Earn"}] } currentValue={amountSign} callback={updateAmountSign} />
         </div>
         <div className="mb-2">
             <label>Amount:</label>
