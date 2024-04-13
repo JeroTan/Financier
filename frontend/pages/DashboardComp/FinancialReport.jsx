@@ -3,6 +3,7 @@ import { GlobalConfigContext } from "../../utilities/GlobalConfig"
 import { CurveEdgeContent, DashboardTitle, DropDown, RoundedContent } from "../Dashboard";
 import Icon from "../../utilities/Icon";
 import { ApiGetFinance } from "../../helper/API";
+import { ceilDecimal, removeDecimal, toISODateFormat } from "../../helper/Math";
 
 export default ()=>{
     //Global
@@ -37,7 +38,7 @@ function ListView(props){
                     refState.report = action.val;
                 break;
                 case "changeFilter":
-                    refState.report = action.val.replaceAll(" ", "");
+                    refState.report = action.val;
                 break;
             }
         }
@@ -76,6 +77,10 @@ function ListView(props){
     </>
 }
 
+function FetchDateRange(props){
+
+}
+
 function FetchList(props){
     const report = props.report;
     const reportFilter = props.reportFilter;
@@ -91,6 +96,160 @@ function FetchList(props){
     return "";
 }
 
+function getDateNavigator(repot, numberOfJumpBack = 0){//This wil be the left side and right side just like the carousel; This will return the reference date from today;
+
+}
+
+function convertFilterToDate(report, filter , date = false){ //This wil be the dropdown
+    //Return an array of List of time queries
+    const timeQuery = [];
+    const dateToday = date || (new Date());
+    const originalDateCopy = new Date(dateToday.toString());
+    switch(report){
+        case "Today":{
+            timeQuery[0] = {};
+            timeQuery[0].dateFrom = toISODateFormat(dateToday);
+            dateToday.setHours(0);
+            dateToday.setMinutes(0);
+            dateToday.setSeconds(0);
+            dateToday.setMilliseconds(0);
+            timeQuery[0].dateTo = toISODateFormat(dateToday);
+            break;
+        }
+        case "Week":{
+            const length = filter == "12 Hours" ? 14 : 7;
+            const minutesToReduce =  filter == "12 Hours" ? 60*12 : 60*24;  //60 Minutes * n Hours;
+
+            for(let i = 0; i < length; i++){
+                const newDateQuery = {};//set the object
+                newDateQuery.dateTo = toISODateFormat(dateToday);
+
+                if(i == 0){//To reset the timer to 0;
+                    dateToday.setHours(0);
+                    dateToday.setMinutes(0);
+                    dateToday.setSeconds(0);
+                    dateToday.setMilliseconds(0);
+                    if(filter == "12 Hours" && originalDateCopy.getDate() > 12 ){
+                        dateToday.setHours(12);
+                    }
+                }else{//Start the reduction after the first round;
+                    dateToday.setMinutes(-minutesToReduce); 
+                }
+
+                newDateQuery.dateFrom = toISODateFormat(dateToday);   
+                timeQuery[i] = newDateQuery;
+
+            }
+            break;
+        } 
+        case "Month":{
+            const length = filter == "Days" ? dateToday.getDate() : ceilDecimal( dateToday.getDate()/7 );
+            const hoursToReduce = filter == "Days" ? 24*1 : 24*7; //Hours * n Days;
+            
+            for(let i =0 ; i < length; i++){
+                const newDateQuery = {}; //set the object for time query;
+                newDateQuery.dateTo = toISODateFormat(dateToday);
+
+                if(i == 0){//To reset the timer to 0;
+                    dateToday.setHours(0);
+                    dateToday.setMinutes(0);
+                    dateToday.setSeconds(0);
+                    dateToday.setMilliseconds(0);
+                    if( filter == "Weeks" && originalDateCopy.getDate()%7  ){
+                        dateToday.setHours( 24*(originalDateCopy.getDate()%7)  );
+                    }
+                }else{
+                    dateToday.setHours( -hoursToReduce);
+                }
+
+                newDateQuery.dateFrom = toISODateFormat(dateToday);
+                timeQuery[i] = newDateQuery;
+            }
+            break;
+        }   
+        case "Year":{
+            const translate = {
+                "Months": 1,
+                "2 Months": 2,
+                "3 Months": 3,
+                "4 Months": 4,
+                "6 Months": 6,
+            }
+
+            const length = ceilDecimal( originalDateCopy.getMonth() / translate[filter] );
+            const monthToSkip = translate[filter];
+            const firstTurnSkip = removeDecimal( originalDateCopy.getMonth() % translate[filter] );
+
+            for(let i =0 ; i < length; i++){
+                const newDateQuery = {}; //set the object for time query;
+                newDateQuery.dateTo = toISODateFormat(dateToday);
+
+                if(i == 0){
+                    dateToday.setHours(0);
+                    dateToday.setMinutes(0);
+                    dateToday.setSeconds(0);
+                    dateToday.setMilliseconds(0);
+                    for(let j = 0; j < firstTurnSkip; j++){
+                        if(j = 0){
+                            dateToday.setDate(1);
+                            continue;
+                        }
+                        dateToday.setDate(0);
+                        dateToday.setDate(1);
+                    }
+                }else{
+                    for(let j = 0; j < monthToSkip; j++){
+                        dateToday.setDate(0);
+                        dateToday.setDate(1);
+                    }
+                }
+
+                newDateQuery.dateFrom = toISODateFormat(dateToday);
+                timeQuery[i] = newDateQuery;
+            }
+
+            break;
+        }
+        case "Decade":{ //10 Years
+            const translate = {
+                "Years": 1,
+                "2 Years": 2,
+                "5 Years": 5,
+            }
+            const length = ceilDecimal( 10 / translate[filter] );
+            const yearsToSkip = translate[filter];
+
+            for(let i =0 ; i < length; i++){
+                const newDateQuery = {}; //set the object for time query;
+                newDateQuery.dateTo = toISODateFormat(dateToday);
+
+                if(i == 0){
+                    dateToday.setDate(1);
+                    dateToday.setHours(0);
+                    dateToday.setMinutes(0);
+                    dateToday.setSeconds(0);
+                    dateToday.setMilliseconds(0);   
+                }
+                for(let j = 0; j < yearsToSkip; j++){
+                    if(i == 0 && j==0){//First Turn Skip
+                        dateToday.setMonth(0);
+                        continue;
+                    }
+                    dateToday.setMonth(-1);
+                    dateToday.setMonth(0);
+                }
+
+                newDateQuery.dateFrom = toISODateFormat(dateToday);
+                timeQuery[i] = newDateQuery;
+            }
+            break;
+        }
+    }
+    return timeQuery;
+
+}
+
+
 function Filter(props){
     //Global
     const changeReport = props.changeReport;
@@ -98,16 +257,16 @@ function Filter(props){
 
 
     const reportTypes = useMemo(()=>({
-        Today: ["Each"],
-        Weekly: ["12 Hours", "Each Day",],
-        Monthly: ["Each Day", "7 Days"],
-        Annually: ["1 Month", "2 Months", "3 Months", "4 Months", "6 Months"],
-        Decade: ["1 Years", "2 Years", "5 Years"],
+        Daily: ["Each"],
+        Weekly: ["12 Hours", "Days"],
+        Monthly: ["Days", "Weeks"],
+        Anually: ["Months", "2 Months", "3 Months", "4 Months", "6 Months"],
+        Decade: ["Years", "2 Years", "5 Years"],
     }), []);
 
     //State
     const [ getReport, setReport ] = useState("Monthly"); //Default Data must match reportTypes and getReport
-    const [ getReportFilter, setReportFilter] = useState("Each Day"); //Default Data must match reportTypes and getReport
+    const [ getReportFilter, setReportFilter] = useState("Days"); //Default Data must match reportTypes and getReport
     const [ openReportDropdown, setOpenReportDropdown] = useState(false);
     const [ openFilterDropdown, setOpenFilterDropdown] = useState(false);
 

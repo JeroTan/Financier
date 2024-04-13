@@ -1,4 +1,4 @@
-import { separateNumber } from "../../../helper/math.js";
+import { separateNumber, toISODateFormat } from "../../../helper/math.js";
 import { tokenRead } from "../../../helper/tokenizer.js";
 import { Validation, generateValidateInstance, multiValidate } from "../../../helper/validation.js";
 import { db } from "../../../migrations/define.js";
@@ -59,9 +59,9 @@ export const Finance = {
             const dateToResult =  await valInst[1].validate();
 
             const dateFromFinal = dateFromResult===true ? new Date(dateFrom) : new Date(0);
-            const dateToFinal = dateToResult===true ? new Date(dateTo) : new Date(new Date().setHours(24));
+            const dateToFinal = dateToResult===true ? new Date(dateTo) : new Date();
 
-            const result = await db("finance").select('id', 'amountWhole', 'amountDecimal', 'amountSign', 'amountFrom', 'description', 'time').where({accountId: accountId}).whereBetween("time", [dateFromFinal.toISOString(), dateToFinal.toISOString()]);
+            const result = await db("finance").select('id', 'amountWhole', 'amountDecimal', 'amountSign', 'amountFrom', 'description', 'time').where({accountId: accountId}).whereBetween("time", [ toISODateFormat(dateFromFinal), toISODateFormat(dateToFinal)]);
 
             res.status(200).json(result);
         })();

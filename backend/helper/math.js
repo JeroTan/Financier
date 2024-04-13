@@ -7,6 +7,12 @@ export function getToday(){
     return transformDate(Date.now());
 }
 
+export function toISODateFormat(date, standard = false){
+    if(standard)
+        return data.toISOString();
+    return `${date.getUTCFullYear()}-${date.getUTCMonth()+1}-${date.getUTCDate()}T${date.getHours()}:${date.getMinutes()}`
+}
+
 export function separateNumber(raw){
     const result = {
         sign: false, //Sign Boolean
