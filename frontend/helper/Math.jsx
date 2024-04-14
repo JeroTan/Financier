@@ -38,10 +38,19 @@ export function adjustDecimal(number, addPlaceValue = true){
     return result;
 }
 
-export function transformDate(date){
+export function transformDate(date, format="simple"){
     const dateMe = new Date(date);
-    return `${dateMe.getFullYear()}, ${dateMe.getMonth()}-${dateMe.getDate()} | ${dateMe.getHours()}:${dateMe.getMinutes()}`;
+    switch(format){
+        case "simple":{
+            return `${dateMe.getFullYear()}, ${dateMe.getMonth()}-${dateMe.getDate()} | ${dateMe.getHours()}:${dateMe.getMinutes()}`;
+        }
+        case "yyyy-mm-dd":{
+            return `${padNumber(dateMe.getFullYear(), 4)}-${padNumber(date.getMonth()+1, 2)}-${padNumber(date.getDate(), 2)}`;
+        }
+    }
+   
 }
+
 
 
 export function getToday(){
@@ -51,7 +60,8 @@ export function getToday(){
 export function toISODateFormat(date, standard = false){
     if(standard)
         return data.toISOString();
-    return `${date.getUTCFullYear()}-${date.getUTCMonth()+1}-${date.getUTCDate()}T${date.getHours()}:${date.getMinutes()}`
+
+    return `${date.getFullYear()}-${padNumber(date.getMonth()+1, 2)}-${padNumber(date.getDate(), 2)}T${padNumber(date.getHours(), 2)}:${padNumber(date.getMinutes(), 2)}`
 }
 
 export function numberOfDays(month, year = new Date().getFullYear()){
@@ -104,6 +114,66 @@ export function numberOfDaysOnDate(date){//accepts date only
     return numberOfDays(newDate.getMonth()+1, newDate.getFullYear() );
 }
 
+export class TimeChanger{
+    constructor(date = false){
+        if(date){
+            this.date = new Date(date);
+        }else{
+            this.date = new Date();
+        }
+        const second = 1000; //1000 milliseconds == 1 second;
+        const minute = 60 * second; 
+        const hour = 60 * minute;
+        const day = 24 * hour;
+    }
+    prevSecond(n=1){
+
+    }
+    prevMinute(n=1){
+
+    }
+    prevHour(n=1){
+
+    }
+    prevDay(n =1){
+
+    }
+    prevWeek(n=1){
+
+    }
+    prevMonth(n=1){
+
+    }
+    prevYear(n=1){
+
+    }
+    nextSecond(n=1){
+
+    }
+    nextMinute(n=1){
+
+    }
+    prevHour(n=1){
+
+    }
+    nextDay(n =1){
+
+    }
+    nextWeek(n=1){
+
+    }
+    nextMonth(n=1){
+
+    }
+    nextYear(n=1){
+
+    }
+    
+    getDate(){
+        return this.date;
+    }
+}
+
 export function separateNumber(raw){
     const result = {
         sign: false, //Sign Boolean
@@ -138,10 +208,11 @@ export function padNumber(number, length){
     const paddingValue = 10 ** length;
     
     if(paddingValue > raw.whole){
-        raw.whole = Number((paddingValue + raw.whole).toString().substring(1));
-        return combineNumber(raw, true);
+        raw.whole = (paddingValue + raw.whole).toString().substring(1);
+        return combineNumber(raw, false);
     }
 
-    return combineNumber(raw, true);
+    return combineNumber(raw, false);
     
 }
+

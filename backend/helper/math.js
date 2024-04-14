@@ -10,7 +10,7 @@ export function getToday(){
 export function toISODateFormat(date, standard = false){
     if(standard)
         return data.toISOString();
-    return `${date.getUTCFullYear()}-${date.getUTCMonth()+1}-${date.getUTCDate()}T${date.getHours()}:${date.getMinutes()}`
+        return `${date.getFullYear()}-${padNumber(date.getMonth()+1, 2)}-${padNumber(date.getDate(), 2)}T${padNumber(date.getHours(), 2)}:${padNumber(date.getMinutes(), 2)}`
 }
 
 export function separateNumber(raw){
@@ -26,12 +26,31 @@ export function separateNumber(raw){
     }else{
         result.whole = Number(splitRaw[0]);
     }
-        
-    
-    
 
     if(splitRaw.length == 2)
         result.decimal = Number(splitRaw[1]);
 
     return result;
+}
+
+export function combineNumber(data, convertToNumber = false){
+    let result = `${data.sign ? "-":""}${data.whole}${ data.decimal ? "."+data.decimal : "" }`;
+    if(convertToNumber)
+        result = Number(result);
+    return result;
+}
+
+export function padNumber(number, length){
+    const raw = separateNumber(number);
+    if(length < 0)
+        length = 0;
+    const paddingValue = 10 ** length;
+    
+    if(paddingValue > raw.whole){
+        raw.whole = (paddingValue + raw.whole).toString().substring(1);
+        return combineNumber(raw, false);
+    }
+
+    return combineNumber(raw, false);
+    
 }
