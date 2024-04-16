@@ -52,10 +52,10 @@ html { height:100%; }
 }
 
 .my-main-btn-big{
-    @apply px-5 py-2 bg-yellow-500 rounded-full text-zinc-900 font-semibold hover:bg-yellow-500 focus:outline-2 focus:outline-none;
+    @apply px-5 py-2 bg-yellow-500 rounded-full text-zinc-900 font-semibold hover:bg-yellow-400/75 focus:outline-2 focus:outline-none;
 }
 .my-main-btn-outline-big{
-    @apply px-5 py-2 border border-yellow-500 rounded-full text-zinc-300 font-semibold hover:bg-yellow-500/75 focus:outline-none;
+    @apply px-5 py-2 border border-yellow-500 rounded-full text-zinc-300 font-semibold hover:bg-yellow-400/75 focus:outline-none;
 }
 
 .my-error-text{

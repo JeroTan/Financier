@@ -15,7 +15,7 @@ export function Dashboard(){
 
 function Container(props){
     return <main className="flex justify-center">
-        <main className="w-[96rem] p-2 mt-5">
+        <main className="w-[96rem] p-2 mt-5 mb-12">
             {props.children}
         </main>
     </main>
@@ -217,7 +217,7 @@ export function DropDown(props){
     }
 
     return <>
-        <ul className=" absolute w-full bottom-0 translate-y-[100%] rounded overflow-hidden bg-zinc-900/50">
+        <ul className=" absolute w-full bottom-0 translate-y-[100%] rounded overflow-hidden bg-zinc-900/50 z-10">
         { data.length && data.map(x=>{
             return <Fragment key={x}>
                 <li className=" hover:bg-zinc-700/75 px-4 py-2 cursor-pointer" onPointerDown={selectItem(x)}>

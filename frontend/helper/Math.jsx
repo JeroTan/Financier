@@ -58,7 +58,7 @@ export function separateNumber(raw){
     return result;
 }
 
-export function combineNumber(data, convertToNumber = false){
+export function combineNumber(data, convertToNumber = false){//@data = {sign, whole, decimal}
     let result = `${data.sign ? "-":""}${data.whole}${ data.decimal ? "."+data.decimal : "" }`;
     if(convertToNumber)
         result = Number(result);
@@ -81,27 +81,27 @@ export function padNumber(number, length){
 }
 
 
-//Date Transformer
+//------------ Date Transformer ------------//
 export function transformDate(date, format="simple"){
     const dateMe = new Date(date);
     switch(format){
         case "simple":{
-            return `${dateMe.getFullYear()}, ${dateMe.getMonth()}-${dateMe.getDate()} | ${dateMe.getHours()}:${dateMe.getMinutes()}`;
+            return `${dateMe.getFullYear()}, ${dateMe.getMonth()+1}-${dateMe.getDate()} | ${dateMe.getHours()}:${dateMe.getMinutes()}`;
         }
         case "yyyy-mm-dd":{
             return `${padNumber(dateMe.getFullYear(), 4)}-${padNumber(date.getMonth()+1, 2)}-${padNumber(date.getDate(), 2)}`;
+        }
+        case "iso":{
+            return `${dateMe.getFullYear()}-${padNumber(dateMe.getMonth()+1, 2)}-${padNumber(dateMe.getDate(), 2)}T${padNumber(dateMe.getHours(), 2)}:${padNumber(dateMe.getMinutes(), 2)}`
+        }
+        case "simple-named":{
+            return `${dateMe.getFullYear()}, ${ monthName(dateMe.getMonth()+1) } ${dateMe.getDate()} ${dayName(dateMe.getDay()+1)} | ${hour12(dateMe.getHours())}:${padNumber(dateMe.getMinutes(), 2)}${ dateMe.getHours() >=13 ? "pm":"am"  }`;
         }
     }
    
 }
 export function getToday(){
     return transformDate(Date.now());
-}
-export function toISODateFormat(date, standard = false){
-    if(standard)
-        return data.toISOString();
-
-    return `${date.getFullYear()}-${padNumber(date.getMonth()+1, 2)}-${padNumber(date.getDate(), 2)}T${padNumber(date.getHours(), 2)}:${padNumber(date.getMinutes(), 2)}`
 }
 
 export function numberOfDays(month, year = new Date().getFullYear(), date =false){
@@ -157,14 +157,63 @@ export function numberOfDays(month, year = new Date().getFullYear(), date =false
             return 31;
     }
 }
+export function monthName(number, format="short"){ //Short or Full
+    switch(number){
+        case 1:
+            return format=="short"?"Jan":"January";
+        case 2:
+            return format=="short"?"Feb":"February";
+        case 3:
+            return format=="short"?"Mar":"March";
+        case 4:
+            return format=="short"?"Apr":"April";
+        case 5:
+            return format=="short"?"May":"May";
+        case 6:
+            return format=="short"?"Jun":"June";
+        case 7:
+            return format=="short"?"Jul":"July";
+        case 8:
+            return format=="short"?"Aug":"August";
+        case 9:
+            return format=="short"?"Sep":"September";
+        case 10:
+            return format=="short"?"Oct":"October";
+        case 11:
+            return format=="short"?"Nov":"November";
+        case 12:
+            return format=="short"?"Dec":"December";
+    }
+}
+export function dayName(number, format="short"){
+    switch(number){
+        case 1:
+            return format=="short"?"Sun":"Sunday";
+        case 2:
+            return format=="short"?"Mon":"Monday";
+        case 3:
+            return format=="short"?"Tue":"Tuesday";
+        case 4:
+            return format=="short"?"Wed":"Wednesday";
+        case 5:
+            return format=="short"?"Thu":"Thursday";
+        case 6:
+            return format=="short"?"Fri":"Friday";
+        case 7:
+            return format=="short"?"Sat":"Saturday";
+    }
+}
+export function hour12(hour24){
+    return removeDecimal(hour24%12) || 12;
+}
+
 //Please make a date class for time so that it is not convuluted
-export class TimeChanger{
-    constructor(date = false){
-        if(date){
-            this.date = new Date(date);
-        }else{
-            this.date = new Date();
-        }
+export class DateNavigator extends Date{
+    constructor(date=undefined){
+        if(date == undefined){
+            super()
+        }else
+            super(date);
         const second = 1000; //1000 milliseconds == 1 second;
         const minute = 60 * second; 
         const hour = 60 * minute;
@@ -176,150 +225,221 @@ export class TimeChanger{
             day: day,
         }
     }
+    changeDate(date){
+        // TO BE CONTINUE
+        return this;
+    }
     normalize(whatTime, type="min"){//@whatTime = Year(2037 or 1970), Month(0 or 11), Day(0, 28,29,30,31), Hour(0, 23), Minute(0, 59), Seconds(0, 59), Milliseconds(0,999)
-        const {second} = this.reference;
+        const {day} = this.reference;
         const translate = {
             "0":0, "millisecond":0, "Millisecond":0, "ms":0,    "MS":0,      "mls":0,   "MIS":0,
             "1":1, "second":1,      "Second":1,      "s":1,     "S":1,       "ss":1,    "SS":1,
             "2":2, "minute":2,      "Minute":2,      "m":2,     "M":2,       "mi":2,    "MI":2,
             "3":3, "hour":3,        "Hour":3,        "h":3,     "H":3,       "hh":3,    "HH":3,
-            "4":4, "day":4,         "Day":4,         "date":4,  "Date":4,    "d":4,     "D":4,      "dd":4,    "DD":4,
+            "4":4, "day":4,         "Day":4,         "date":4,  "Date":4,    "d":4,     "D":4,      "dd":4,    "DD":4,  "week":4,  "Week":4,
             "5":5, "month":5,       "Month":5,       "mm":5,    "MM":5,
             "6":6, "year":6,        "Year":6,        "y":6,     "y":6,       "yyyy":6,  "YYYY":7,
         }
-        if(translate[whatTime]){
+        
+        if(translate[whatTime] == undefined){
             return this;
         }
-        switch(translate[whatTime]){
-            case 6: case 5: case 4: case 3: case 2: case 1: case 0:
-                this.date.setMilliseconds( type=="min"?0:999 );
-            break;
-            case 6: case 5: case 4: case 3: case 2: case 1:
-                this.date.setSeconds( type=="min"?0:59 );
-            break;
-            case 6: case 5: case 4: case 3: case 2:
-                this.date.setMinutes( type=="min"?0:59 );
-            break;
-            case 6: case 5: case 4: case 3:
-                this.date.setHours( type=="min"?0:23 );
-            break;
-            case 6: case 5: case 4:
+   
+        if( translate[whatTime] >=0 ){
+            super.setMilliseconds( type=="min"?0:999 );
+        }
+        
+        if( translate[whatTime] >=1 ){
+            super.setSeconds( type=="min"?0:59 );
+        }
+        
+        if( translate[whatTime] >=2 ){
+            super.setMinutes( type=="min"?0:59 );
+        }
+
+        if( translate[whatTime] >=3 ){
+            super.setHours( type=="min"?0:23 );
+        }
+
+        if(translate[whatTime] >=4){
+            if(whatTime == "week" || whatTime == "Week"){
                 if(type=="min"){
-                    this.date.setDate(1);
+                    super.setTime(   super.getTime() - day*(super.getDay())    )//Set the starting to sunday;
                 }
                 else{
-                    this.date.setDate(32);
-                    this.date.setDate(0);
+                    super.setTime(   super.getTime() + day*(6-super.getDay())    )//Set the ending saturday.
                 }
-            break;
-            case 6: case 5:
-                this.date.setMonth( type=="min"?0:11 );
-            break;
-            case 6:
-                this.date.setFullYear( type=="min"?1970:2037 );
-            break;
+            }else{
+                if(type=="min"){
+                    super.setDate(1);
+                }
+                else{
+                    super.setDate(32);
+                    super.setDate(0);
+                }
+            }
+            
         }
+
+        if(translate[whatTime] >=5){
+            super.setMonth( type=="min"?0:11 );
+        }
+
+        if(translate[whatTime] >=6){
+            super.setFullYear( type=="min"?1970:2037 );
+        }
+            
         return this;
     }
 
+    //---- PREV----//
     prevSecond(n=1){
         const {second} = this.reference;
-        this.date.setTime( -(second*n) );
+        super.setTime( super.getTime() - (second*n) );
         return this;
     }
     prevMinute(n=1){
         const {minute} = this.reference;
-        this.date.setTime( -(minute*n) );
+        super.setTime( super.getTime() - (minute*n) );
         return this;
     }
     prevHour(n=1){
         const {hour} = this.reference;
-        this.date.setTime( -(hour*n) );
+        super.setTime( super.getTime() - (hour*n) );
         return this;
     }
-    prevDay(n =1){
+    prevDay(n=1){
         const {day} = this.reference;
-        this.date.setTime( -(day*n) );
+        super.setTime( super.getTime() - (day*n) );
         return this;
     }
     prevWeek(n=1){
         const {day} = this.reference;
-        this.date.setTime( -(day*7*n) );
+        super.setTime( super.getTime() - (day*7*n) );
         return this;
     }
     prevMonth(n=1, type="min"){
         while(n>0){
-            this.date.setDate(0);
+            super.setDate(0);
             --n;
         }
         if(type=="min")
-                this.date.setDate(1);
+                super.setDate(1);
         return this;
     }
     prevYear(n=1){
-        this.date.setFullYear( this.date.getFullYear()-n );
+        super.setFullYear( super.getFullYear()-n );
         return this;
     }
     prevDecade(n=1){
-        this.date.setFullYear( this.date.getFullYear()-n*10 );
+        super.setFullYear( super.getFullYear()-n*10 );
         return this;
     }
     prevCentury(n=1){
-        this.date.setFullYear( this.date.getFullYear()-n*100 );
+        super.setFullYear( super.getFullYear()-n*100 );
         return this;
     }
+
+    //---- NEXT----//
     nextSecond(n=1){
         const {second} = this.reference;
-        this.date.setTime( second*n );
+        super.setTime( super.getTime() + second*n );
         return this;
     }
     nextMinute(n=1){
         const {minute} = this.reference;
-        this.date.setTime( minute*n );
+        super.setTime( super.getTime() + minute*n );
         return this;
     }
-    prevHour(n=1){
+    nextHour(n=1){
         const {hour} = this.reference;
-        this.date.setTime( hour*n );
+        super.setTime( super.getTime() + hour*n );
         return this;
     }
     nextDay(n =1){
         const {day} = this.reference;
-        this.date.setTime( day*n );
+        super.setTime( super.getTime() + day*n );
         return this;
     }
     nextWeek(n=1){
         const {day} = this.reference;
-        this.date.setTime( day*7*n );
+        super.setTime( super.getTime() + day*7*n );
         return this;
     }
     nextMonth(n=1, type="min"){
         while(n>0){
-            this.date.setDate(32);
-            this.date.setDate(1);
+            super.setDate(32);
+            super.setDate(1);
             --n;
         }
         if(type=="max"){
-            this.date.setDate(32);
-            this.date.setDate(0);
+            super.setDate(32);
+            super.setDate(0);
         }
             
         return this;
     }
     nextYear(n=1){
-        this.date.setFullYear( this.date.getFullYear()+n );
+        super.setFullYear( super.getFullYear()+n );
         return this;
     }
     nextDecade(n=1){
-        this.date.setFullYear( this.date.getFullYear()+n*10 );
+        super.setFullYear( super.getFullYear()+n*10 );
         return this;
     }
     nextCentury(n=1){
-        this.date.setFullYear( this.date.getFullYear()+n*100 );
+        super.setFullYear( super.getFullYear()+n*100 );
         return this;
     }
-    
-    getDate(){
-        return this.date;
+
+    //---- GAP----//
+    gapSecond(dateRef){
+        const {second} = this.reference;
+        const gap = super.getTime() - dateRef.getTime();
+        return removeDecimal( gap/second );
     }
+    gapMinute(dateRef){
+        const {minute} = this.reference;
+        const gap = super.getTime() - dateRef.getTime();
+        return removeDecimal( gap/minute );
+    }
+    gapHour(dateRef){
+        const {hour} = this.reference;
+        const gap = super.getTime() - dateRef.getTime();
+        return removeDecimal( gap/hour );
+    }
+    gapDay(dateRef){
+        const {day} = this.reference;
+        const gap = super.getTime() - dateRef.getTime();
+        return removeDecimal( gap/day );
+    }
+    gapWeek(dateRef){
+        const {day} = this.reference;
+        super.setTime(    super.getTime() +  day*( 6-super.getDay() )    );
+        const gap = super.getTime() - dateRef.getTime();
+        return removeDecimal( gap/(7*day) );
+    }
+    gapMonth(dateRef){
+        let annualGap = super.getFullYear() - dateRef.getFullYear();
+        let monthGap = super.getMonth() - dateRef.getMonth();
+        if(monthGap < 0){
+            annualGap-=1;
+            monthGap+=12;
+        }
+        return (annualGap*12) + monthGap;
+    }
+    gapYear(dateRef){
+        const annualGap = super.getFullYear() - dateRef.getFullYear();
+        return annualGap;
+    }
+    gapDecade(dateRef){
+        const annualGap = super.getFullYear() - dateRef.getFullYear();
+        return removeDecimal(annualGap/10);
+    }
+    gapCentury(dateRef){
+        const annualGap = super.getFullYear() - dateRef.getFullYear();
+        return removeDecimal(annualGap/100);
+    }
+
 }
+
