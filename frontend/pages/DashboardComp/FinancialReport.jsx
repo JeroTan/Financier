@@ -2,8 +2,8 @@ import { Fragment, useContext, useEffect, useMemo, useReducer, useRef, useState 
 import { GlobalConfigContext } from "../../utilities/GlobalConfig"
 import { CurveEdgeContent, DashboardTitle, DropDown, RoundedContent } from "../Dashboard";
 import Icon from "../../utilities/Icon";
-import { ApiGetFinance } from "../../helper/API";
-import { DateNavigator, ceilDecimal, combineNumber, removeDecimal, transformDate } from "../../helper/Math";
+import { ApiGetCurrency, ApiGetFinance } from "../../helper/API";
+import { DateNavigator, adjustDecimal, ceilDecimal, combineNumber, removeDecimal, transformDate } from "../../helper/Math";
 
 export default ()=>{
     //Global
@@ -98,7 +98,7 @@ function ListView(props){
     return <>
         <Filter dateJump={viewConfig.dateJump} changeReport={changeReport} changeFilterType={changeFilterType} changeDateJump={changeDateJump} />
         <FetchList report={viewConfig.report} filterType={viewConfig.filterType} dateJump={viewConfig.dateJump} changeList={changeList} addToList={addToList} />
-        <Lister list={viewConfig.list} />
+        <Lister list={viewConfig.list} report={viewConfig.report} />
         <NextPrev dateJump={viewConfig.dateJump} changeDateJump={changeDateJump} />
     </>
 }
@@ -303,7 +303,7 @@ function convertIntoList(fetchedData, name){
         title: name,
         totalExpense:0,
         totalEarn:0,
-        listOfFrom:[], //{id, name, amount}
+        listOfFrom:{earn:[], expense:[]}, //:{id, name, amount}
     }
 
     //Begin Convertion
@@ -314,11 +314,11 @@ function convertIntoList(fetchedData, name){
 
         if(amount > 0){
             data.totalEarn += amount;
+            data.listOfFrom.earn.push( {id:id, name:amountFrom, amount:amount} );
         }else{
-            data.totalEarn += -(amount);
+            data.totalExpense += -(amount);
+            data.listOfFrom.expense.push( {id:id, name:amountFrom, amount:amount} );
         }
-
-        data.listOfFrom.push( {id:id, name:amountFrom, amount:amount} );
     }
 
     return data;
@@ -480,21 +480,40 @@ function NextPrev(props){
 
 
 function Lister(props){
-    const {list} = props;
+    const {list, report} = props;
+
+    const currencyValue = useRef(false);
+    useEffect(()=>{ 
+        ApiGetCurrency().then(x=>{
+            if(x.status == 200){
+                currencyValue.current = x.data;
+                return;
+            }
+            currencyValue.current = 1;
+        })
+    }, []);
 
     return <>
     <main className="w-full relative flex flex-col gap-2 py-5">
-        {list.length > 0 ? (
+        {list.length > 0  && currencyValue.current !== false? (
             list.map((x,i)=>{
+                let measurement = 100;
+                if(report == "Monthly")
+                    measurement = 200;
+                else if(report == "Anually")
+                    measurement = 1000;
+                else if(report == "Decades")
+                    measurement = 10000;
+
                 return <Fragment key={i} >
-                <div  className=" flex justify-center">
-                    {x == undefined ? <>
-                        <div className=" rounded p-4 bg-zinc-900/50" style={{flexBasis: "1000px"}}>. . .</div>  
-                    </> :<>
-                    <ItemDsiplayer data={x} reference={10000} />
-                    </>}
-                    
-                </div>
+                    <div  className=" flex justify-center">
+                        {x == undefined ? <>
+                            <div className=" rounded p-4 bg-zinc-900/50" style={{flexBasis: "1000px"}}>. . .</div>  
+                        </> :<>
+                        <ItemDsiplayer data={x} currency={currencyValue.current} measurement={measurement} />
+                        </>}
+                        
+                    </div>
                 </Fragment>
             })
         ):<>
@@ -512,50 +531,99 @@ function Lister(props){
 
 function ItemDsiplayer(props){
     const data = props.data;
-    const reference = props.reference ?? 10000;
+    const currency = props.currency ?? 1;
     const {title, totalExpense, totalEarn, listOfFrom} = data;
+    const measurement = props.measurement ?? 1000;
     
     if( totalEarn <= 0 && totalExpense <= 0){
         return <>
         <div className=" relative rounded p-4 bg-zinc-900/25" style={{flexBasis: "1050px"}}>
             <h1 className=" font-semibold md:text-xl sm:text-base text-xs tracking-tighter text-zinc-600">{title}</h1>
 
-            <div className=" px-3 my-1 bg-zinc-900/75 rounded-full w-fit text-xs text-zinc-300"> Clear </div>
+            <div className=" px-3 my-1 bg-zinc-900/75 rounded-full w-fit text-xs text-zinc-300"> Empty </div>
         </div>
         </>
-    }  
+    }
+
+    //Compute the scale of expense and earn
+    const ExpenseLength = useMemo(()=>{
+        return ((currency*measurement*5) < totalExpense) ? ceilDecimal( totalExpense / (currency*measurement) ) : 5 ;
+    }, []);
+    const EarnLength = useMemo(()=>{
+        return ((currency*measurement*5) < totalEarn) ? ceilDecimal( totalEarn / (currency*measurement) ) : 5 ;
+    }, []);
+    
+    
+    //Calculate Line Measurement of Expense
+    const ExpenseMeasurement = useMemo(()=>{
+        return [...Array(ExpenseLength+1)].map((x, i)=>{
+            return <div key={i} className=" absolute bg-zinc-400 w-1 h-3" style={{left: (100*(i/ExpenseLength))+"%",  bottom: "25%" }} ></div>
+        })
+    }, []);
+
+    //Calculate Line Measurement of Earn
+    const EarnMeasurement = useMemo(()=>{
+        return [...Array(EarnLength+1)].map((x, i)=>{
+            return <div key={i} className=" absolute bg-zinc-400 w-1 h-3" style={{right: (100*(i/EarnLength))+"%",  bottom: "25%" }} ></div>
+        })
+    }, []);
+
+    //Graphs
+    const ExpenseGraph = useMemo(()=>{
+        return <div className=" h-5 rounded-l bg-yellow-500" style={{width: `${ totalExpense/(ExpenseLength*currency*measurement)*100 }%`}}></div>
+    }, []);
+    const EarnGraph = useMemo(()=>{
+        return <div className=" h-5 rounded-r bg-emerald-700" style={{width: `${ totalEarn/(EarnLength*currency*measurement)*100 }%`}}></div>
+    }, []);
+
+    //useState
+    const [ openListOfFrom, setOpenListOfFrom ] = useState(false);
+    
 
     return <>
         <div className=" relative rounded p-4 mt-5 bg-zinc-900/75" style={{flexBasis: "1050px"}}>
             <h1 className=" font-semibold md:text-xl sm:text-base text-xs tracking-tighter text-zinc-400">{title}</h1>
             
-            
+            {/* Graph */}
             <div className="relative my-3 flex flex-wrap">
-                <div className=" w-6/12 h-5 relative">
+                <div className=" w-6/12 h-5 relative overflow-hidden">
                     <hr className=" absolute top-1/2 bottom-1/2 w-full border-zinc-500" />
+                    {ExpenseMeasurement}
                 </div>
-                <div className=" w-6/12 h-5 relative">
+                <div className=" w-6/12 h-5 relative overflow-hidden">
                     <hr className=" absolute top-1/2 bottom-1/2 w-full border-zinc-500" />
+                    {EarnMeasurement}
                 </div>
-                
-                <div className=" w-6/12 flex justify-end">
-                    <div className=" h-5 rounded-l bg-yellow-500" style={{width: `50%`}}>
 
-                    </div>
+                <div className=" w-6/12 flex justify-end overflow-hidden">
+                    {ExpenseGraph}
                 </div>
-                <div className=" w-6/12 flex justify-start">
-                    <div className=" h-5 rounded-r bg-zinc-600" style={{width: `100%`}}>
-
-                    </div>
+                <div className=" w-6/12 flex justify-start overflow-hidden">
+                    {EarnGraph}
                 </div>
             </div>
 
-            <div className="flex flex-wrap justify-between">
+            <div className="flex flex-wrap gap-2 justify-between">
                 <div className="flex flex-col">
                     <small className=" text-zinc-400">Expenses: <span className=" text-zinc-300 font-bold">{totalExpense}</span></small>
                     <small className=" text-zinc-400">Earnings: <span className=" text-zinc-300 font-bold">{totalEarn}</span></small>
                 </div>
-                <div>
+                <div className=" basis-96 bg-zinc-700/50 rounded overflow-hidden">
+                    <div className={`w-full cursor-pointer p-2 rounded flex justify-between items-center ${openListOfFrom ? "bg-zinc-800 hover:bg-zinc-800/50":"bg-zinc-800/75 hover:bg-zinc-700"} `} onClick={()=>setOpenListOfFrom(prev=>!prev)}>
+                        <p className=" tracking-tighter font-semibold text-zinc-400">Transactions</p>
+                        <Icon name={openListOfFrom?"up":"down"} inClass=" fill-zinc-400" outClass=" w-5 h-5" />
+                    </div>
+
+                    {openListOfFrom ?<>
+                    <div className="p-2">
+                        <h4>Expense: </h4>
+                        <DisplayListFrom list={listOfFrom.expense} total={totalExpense} />
+
+                        <h4>Earn: </h4>
+                        <DisplayListFrom list={listOfFrom.earn} total={totalEarn} />
+
+                    </div>
+                    </>:""}
 
                 </div>
             </div>
@@ -564,6 +632,59 @@ function ItemDsiplayer(props){
     </>
 }
 
+function DisplayListFrom(props){
+    const { list, total } = props;
+
+    if(list.length < 1){ //return and skip other logic if the list is actually empty;
+        return <small className=" px-3 bg-zinc-900/75 rounded-full w-fit text-xs text-zinc-300"> Empty </small>
+    }
+
+    //Make A Controllable Reference of List
+    const referenceList = useRef(list);
+
+    const [ loadCount, setLoadCount ] = useState(0);
+    const [ refinedList, setRefinedList ] = useState([]); //This one is different from controllable
+    const originalLength = list.length;
+    const loadThreshold = 10;
+
+    useEffect(()=>{
+        let i = 0; //Use to break stuff once reache the threshold
+        for(const e of referenceList.current){
+            if(i==loadThreshold)
+                break;
+            
+            setRefinedList(prev=>{
+                const refPrev = structuredClone(prev)
+                refPrev.push( e );
+                return refPrev;
+            })
+            
+            i++;
+        }
+        
+        referenceList.current = referenceList.current.filter((x,i)=>i<loadThreshold?false:true);
+    }, [ loadCount ]);
+
+    return <>
+        {refinedList.map(x=>{
+            return <Fragment key={x.id}>
+                <div className="ml-2 w-100 flex flex-wrap justify-between gap-2">
+                    <small className=" me-auto text-zinc-400">{x.name}</small>
+                    <small className="text-zinc-400"> {x.amount} </small>
+                    <small className="text-yellow-400/50 italic">{ adjustDecimal(Number(Math.abs(x.amount))/total*100) }%</small>
+                </div>
+            </Fragment>
+        })}
+        {loadCount < removeDecimal((originalLength-1)/loadThreshold) ? <>
+            <small className=" px-3 my-1 bg-zinc-900/75 hover:bg-zinc-800 rounded-full w-fit text-xs text-zinc-300 cursor-pointer" onClick={()=>{setLoadCount(prev=>prev+1)}} > 
+                Load More 
+            </small>
+        </> : ""}
+    </>
+}
+
+
+//IF I have time I will add this
 function LoadMore(props){
     return <>
     </>

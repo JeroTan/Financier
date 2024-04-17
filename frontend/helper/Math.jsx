@@ -27,15 +27,21 @@ export function ceilDecimal(number){
     return removeDecimal( Math.ceil(number) );
 }
 
-export function adjustDecimal(number, addPlaceValue = true){
+export function adjustDecimal(number, addPlaceValue = true, trimZero=true){
     const placeValue = typeof addPlaceValue === "boolean" ? 2 : Number(addPlaceValue);
     let result = number.toFixed(placeValue);
-    if(placeValue < result.split(".")[1].length){
-        result = result.split(".");
-        result = `${result[0]}.${result[1].slice(placeValue)}`;
-        result = Number(result);
+    result = result.toString().split(".");
+
+    if(result.length == 2 && placeValue < result[1].length){
+        result[1] = result[1].slice(placeValue);
     }
-    return result;
+
+    if( trimZero && result.length == 2  && Number(result[1]) == 0 ){
+        result = `${result[0]}`;
+    }else{
+        result = `${result[0]}.${result[1]}`;
+    }
+    return Number(result);
 }
 
 export function separateNumber(raw){

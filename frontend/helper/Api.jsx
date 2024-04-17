@@ -160,3 +160,8 @@ export async function ApiGetFinance(dateFrom, dateTo, ){
     const api = new ApiRequestPlate;
     return await api.url('finance').auth().params({dateFrom:dateFrom, dateTo:dateTo}).get().request();
 }
+
+export async function ApiGetCurrency(){
+    const api = new ApiRequestPlate;
+    return await api.url('currency').auth().get().request();
+}

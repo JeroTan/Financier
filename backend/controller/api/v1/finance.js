@@ -102,5 +102,19 @@ export const Finance = {
                 return res.sendStatus(200);
             }
         })();
-    }
+    },
+
+    getCurrency: (req, res)=>{
+        const accountId = tokenRead(req.token).id;
+
+        (async()=>{
+            //GET the profile
+
+            //Check the contents of profile; especially the currency
+
+            res.status(200).json(50);
+        })();
+
+
+    },
 }
