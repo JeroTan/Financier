@@ -17,11 +17,6 @@ export default ()=>{
     return <main>
         <DashboardTitle title={"Financial Report"} />
 
-        <RoundedContent>
-            <h1 className=" text-yellow-500 font-semibold">Current Profile: </h1>
-            <span className="text-zinc-400 font-normal">Example</span>
-        </RoundedContent>
-
         <ListView />
         
     </main>
@@ -96,12 +91,72 @@ function ListView(props){
     }
     
     return <>
+        <Header />
         <Filter dateJump={viewConfig.dateJump} changeReport={changeReport} changeFilterType={changeFilterType} changeDateJump={changeDateJump} />
         <FetchList report={viewConfig.report} filterType={viewConfig.filterType} dateJump={viewConfig.dateJump} changeList={changeList} addToList={addToList} />
         <Lister list={viewConfig.list} report={viewConfig.report} />
         <NextPrev dateJump={viewConfig.dateJump} changeDateJump={changeDateJump} />
     </>
 }
+
+function Header(props){
+    
+    const [ netMoney, setNetMoney ] = useState(". . .");
+    const [ profile, setProfile ] = useState(". . .");
+    const [ currency, setCurrency ] = useState(". . .");
+
+    useEffect(()=>{ 
+        new Promise((resolve, reject)=>{//To Be Continue
+            resolve({status:200, data:"Example"})
+        }).then(x=>{
+            if(x.status == 200){
+                setProfile(x.data);
+            }
+        })
+
+        new Promise((resolve, reject)=>{//To Be Continue
+            resolve({status:200, data:"Peso"})
+        }).then(x=>{
+            if(x.status == 200){
+                setCurrency(x.data);
+            }
+        })
+
+        ApiGetFinance(new Date(0), new Date()).then(x=>{
+            if(x.status == 200){
+                let net = 0;
+               
+                x.data.forEach(d=>{
+                    net += combineNumber( {sign:d.amountSign, whole:d.amountWhole, decimal:d.amountDecimal}, true );
+                });
+                
+                setNetMoney(net);
+            }
+        })
+        
+    }, []);
+
+    
+
+    return <>
+        <div className=" flex gap-2 flex-wrap">
+            <RoundedContent>
+                <h1 className=" text-yellow-500 font-semibold">Current Profile: </h1>
+                <span className="text-zinc-400 font-normal">{profile}</span>
+            </RoundedContent>
+            <RoundedContent>
+                <h1 className=" text-yellow-500 font-semibold">Currency: </h1>
+                <span className="text-zinc-400 font-normal">{currency}</span>
+            </RoundedContent>
+            <RoundedContent>
+                <h1 className=" text-yellow-500 font-semibold">Net Money: </h1>
+                <span className="text-zinc-400 font-normal">{netMoney}</span>
+            </RoundedContent>
+            
+        </div>
+    </>
+}
+
 
 function Filter(props){
     //Global

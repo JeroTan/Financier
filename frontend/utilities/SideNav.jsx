@@ -12,12 +12,15 @@ export function SideNav(){
     //REF
     const mainRef = useRef();
 
-    return  sideNavisOpen ? <>
-    <div ref={mainRef} className=" fixed h-screen w-full my-backdrop " onClick={(e)=>{
+    //Functions
+    function closeOutside(e){
         if(mainRef.current !== e.target)
             return;
         gConfigCast({sideNav: "close"});
-    }}>
+    }
+
+    return  sideNavisOpen ? <>
+    <div ref={mainRef} className=" fixed h-screen w-full my-backdrop " onClick={closeOutside}>
         <div  className={`absolute left-0 top-0 bottom-0 w-96 bg-zinc-800/75 a-left-to-right sm:p-4 p-2 `}>
 
            <div className="flex justify-end mb-2">
@@ -37,7 +40,7 @@ export function SideNav(){
 function OptionSelection(){
     //Global
     const [ gConfig, gConfigCast ] = useContext(GlobalConfigContext);
-    const {sideNavisOpen, sideNavSelected } = gConfig;
+    const { sideNavSelected } = gConfig;
     const navigation = useNavigate();
 
     //Functionality
@@ -55,11 +58,8 @@ function OptionSelection(){
         <li id="addFinance" onClick={selectOption} className={`w-full my-1 p-2 sm:text-xl text-base cursor-pointer rounded-lg ${sideNavSelected == "addFinance" ? "my-pick":"my-not-pick"}`}>
             Add Finance
         </li>
-        <li id="consumptionSourceList" onClick={selectOption} className={`w-full my-1 p-2 sm:text-xl text-base cursor-pointer rounded-lg ${sideNavSelected == "consumptionSourceList" ? "my-pick":"my-not-pick"}`}>
-            Consumption Source List
-        </li>
-        <li id="profitSourceList" onClick={selectOption} className={`w-full my-1 p-2 sm:text-xl text-base cursor-pointer rounded-lg ${sideNavSelected == "profitSourceList" ? "my-pick":"my-not-pick"}`}>
-            Profit Source List
+        <li id="sourceList" onClick={selectOption} className={`w-full my-1 p-2 sm:text-xl text-base cursor-pointer rounded-lg ${sideNavSelected == "sourceList" ? "my-pick":"my-not-pick"}`}>
+            Source List
         </li>
         <li id="profile" onClick={selectOption} className={`w-full my-1 p-2 sm:text-xl text-base cursor-pointer rounded-lg ${sideNavSelected == "profile" ? "my-pick":"my-not-pick"}`}>
             Profile

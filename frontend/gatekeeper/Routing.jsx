@@ -7,10 +7,9 @@ import { NotFoundPage } from "../utilities/Placeholder"
 import { Dashboard } from "../pages/Dashboard"
 import FinancialReport from "../pages/DashboardComp/FinancialReport"
 import AddFinance from "../pages/DashboardComp/AddFinance"
-import ConsumptionSourceList from "../pages/DashboardComp/ConsumptionSourceList"
-import ProfitSourceList from "../pages/DashboardComp/ProfitSourceList"
 import Profile from "../pages/DashboardComp/Profile"
 import { SetupUsername } from "../pages/SetupUsername"
+import SourceList from "../pages/DashboardComp/SourceList"
 
 
 
@@ -37,8 +36,8 @@ export default ()=>{
                 <Route index element={<FinancialReport/>} />
                 <Route path="financialReport" element={<FinancialReport/>} />
                 <Route path="addFinance" element={<AddFinance/>} />
-                <Route path="consumptionSourceList" element={<ConsumptionSourceList/>} />
-                <Route path="profitSourceList" element={<ProfitSourceList/>} />
+                <Route path="sourceList" element={<SourceList/>} />
+               
                 <Route path="profile" element={<Profile/>} />
             </Route>
             
