@@ -212,8 +212,6 @@ export function dayName(number, format="short"){
 export function hour12(hour24){
     return removeDecimal(hour24%12) || 12;
 }
-
-//Please make a date class for time so that it is not convuluted
 export class DateNavigator extends Date{
     constructor(date=undefined){
         if(date == undefined){

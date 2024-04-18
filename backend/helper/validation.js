@@ -231,6 +231,19 @@ export class Validation{
             reject(`${this.getFieldName()} is not the same with ${argument[0].fieldName}`);
         });
     }
+    match(argument=[], customMessage=false){//Match the given Array
+        return this.addValidateAction((resolve, reject)=>{
+            argument = anyToArr(argument, ",");
+            if( argument.some(x=>(x).toString()===(this.input).toString() ))
+                return resolve(true);
+
+            if(customMessage){
+                return reject(this.createErrorMessage(customMessage));
+            }
+
+            reject(`${this.getFieldName()} only accepts the follwoing: ${argument.join(", ").substring(-2)}`);
+        });
+    }
 
     //--Public Object Method--//
 

@@ -1,4 +1,4 @@
-import { separateNumber, toISODateFormat } from "../../../helper/math.js";
+import { combineNumber, separateNumber, transformDate } from "../../../helper/math.js";
 import { tokenRead } from "../../../helper/tokenizer.js";
 import { Validation, generateValidateInstance, multiValidate } from "../../../helper/validation.js";
 import { db } from "../../../migrations/define.js";
@@ -45,23 +45,66 @@ export const Finance = {
     },
 
     get: (req, res)=>{
-        const {dateFrom, dateTo} = req.query;
-        const valInst = generateValidateInstance(2);
+        const {dateFrom, dateTo, search, amountFrom, amountTo, type, sortName, sortAmount } = req.query;
+        const valInst = generateValidateInstance(6);
         const accountId = tokenRead(req.token).id;
         
         valInst[0].addInput(dateFrom).addField("dateFrom")
             .required().date();
         valInst[1].addInput(dateTo).addField("dateTo")
             .required().date();
+        valInst[2].addInput(search).addField("search")
+            .required().regex(/^[a-zA-Z0-9\,\.\-\_\"\'\s]*$/).max(256);
+        valInst[3].addInput(amountFrom).addField("amountFrom")
+            .required().number(true).min(-(10**20)).max(10**20);
+        valInst[4].addInput(amountTo).addField("amountTo")
+            .required().number(true).min(-(10**20)).max(10**20);
+        valInst[5].addInput(type).addField("type")
+            .required().string().match(["earn", "expense", "all"]);
+        valInst[6].addInput(sortName).addField("sortName")
+            .required().string().match(["asc", "desc"]);
+        valInst[7].addInput(sortAmount).addField("sortAmount")
+            .required().string().match(["asc", "desc"]);
 
         (async ()=>{
-            const dateFromResult = await valInst[0].validate();
-            const dateToResult =  await valInst[1].validate();
+            //prepare DB
+            const querying =  db("finance").select('id', 'amountWhole', 'amountDecimal', 'amountSign', 'amountFrom', 'description', 'time').where({accountId: accountId});
 
-            const dateFromFinal = dateFromResult===true ? new Date(dateFrom) : new Date(0);
-            const dateToFinal = dateToResult===true ? new Date(dateTo) : new Date();
+            //DateFrom & //DateTo
+            const dateFromFinal =  (await valInst[0].validate())===true ? new Date(dateFrom) : new Date(0);
+            const dateToFinal = (await valInst[1].validate())===true ? new Date(dateTo) : new Date();
+            querying.whereBetween("time", [ transformDate(dateFromFinal, "iso"), transformDate(dateToFinal, "iso")]);
 
-            const result = await db("finance").select('id', 'amountWhole', 'amountDecimal', 'amountSign', 'amountFrom', 'description', 'time').where({accountId: accountId}).whereBetween("time", [ toISODateFormat(dateFromFinal), toISODateFormat(dateToFinal)]);
+            //Search
+            if(await valInst[2].validate())
+                querying.whereRaw("LOWER(amountFrom) LIKE ?", [`%${search.toLowerCase()}%`]);
+
+            //AmountFrom & AmountTo
+            if(await valInst[3].validate()){
+                const splitNum = separateNumber(amountFrom);
+                querying.where("amountWhole", ">=", splitNum.whole);
+            }
+            if(await valInst[4].validate()){
+                const splitNum = separateNumber(amountTo);
+                querying.where("amountWhole", "<=", splitNum.whole);
+            }
+
+            //Type &
+            if(await valInst[5].validate())
+                querying.where({amountSign:type==="expense"});
+            
+            
+            //Ordering of AmountFrom
+            if(await valInst[6].validate())
+                querying.orderBy("amountFrom", sortName);
+
+            //Ordering of Amount
+            if(await valInst[7].validate()){
+                querying.orderBy("amountWhole", sortAmount);
+                querying.orderBy("amountDecimal", sortAmount);
+            }
+            
+            const result = await querying;
 
             res.status(200).json(result);
         })();

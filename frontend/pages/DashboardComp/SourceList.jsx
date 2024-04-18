@@ -44,7 +44,7 @@ function Viewer(){
         financeType: false, //false means all, [ Earn, Expense ]
     });
     return <ViewerContext.Provider value={[viewerCast, viewerSetCast]}>
-            
+        <Filter />
     </ViewerContext.Provider>
 }
 
