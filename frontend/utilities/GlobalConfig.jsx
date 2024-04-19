@@ -1,4 +1,5 @@
 import { createContext, useReducer } from "react"
+import { popStructure, popUpdater } from "./Pop";
 
 
 function dispatcher(state, action){
@@ -13,24 +14,8 @@ function dispatcher(state, action){
         
     }
     
-    if(action.pop !== undefined){
-        let popUpData = { ...refState.popUp };
-        switch(action.pop){
-            case "open":
-                popUpData.isOpen = true;
-            break;
-            case "close":
-                popUpData.isOpen = false;
-            break;
-            case "update":
-                Object.keys(action.val).forEach(key => {
-                    popUpData[key] = action.val[key];
-                });
-                popUpData = {...popUpData};
-            break;
-        }
-        refState.popUp = popUpData;
-    }
+    refState.popUp = popUpdater(action, refState.popUp);
+
 
     if(action.sideNav !== undefined){
         switch(action.sideNav){
@@ -53,26 +38,7 @@ const state = {
     pageLoadingPercent: false,
     sideNavisOpen: false,
     sideNavSelected: "financialReport",
-    popUp: {
-        isOpen: false,
-        width: "450px",
-        icon: "check",
-        iconColor: "fill-green-600",
-        iconAnimate: "a-fade-in-scale",
-        title: "Title",
-        message: "Lorem Ipsum Dfss Mfde fjdkfss DFfjdfjf fsfsdfsdf",
-        acceptButton: true,
-        rejectButton: true,
-        acceptButtonText: "Okay",
-        rejectButtonText: "Cancel",
-        acceptButtonCallback: undefined,
-        rejectButtonCallback: undefined,
-        closeButton: true,
-        closeButtonCallback: undefined,
-        backdropTrigger: true,
-        backdropTriggerCallback: undefined,
-        customDialog: undefined,
-    }
+    popUp: popStructure,
 }
 
 export const GlobalConfig = ()=>{

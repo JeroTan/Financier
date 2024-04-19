@@ -1,6 +1,6 @@
 import { Fragment, useContext, useEffect, useMemo, useReducer, useRef, useState } from "react"
 import { GlobalConfigContext } from "../../utilities/GlobalConfig"
-import { CurveEdgeContent, DashboardTitle, DropDown, RoundedContent } from "../Dashboard";
+import { CurveEdgeContent, DashboardTitle, DropDown, RoundedContent, SmallRoundedContent } from "../Dashboard";
 import Icon from "../../utilities/Icon";
 import { ApiGetCurrency, ApiGetFinance } from "../../helper/API";
 import { DateNavigator, adjustDecimal, ceilDecimal, combineNumber, removeDecimal, transformDate } from "../../helper/Math";
@@ -122,7 +122,7 @@ function Header(props){
             }
         })
 
-        ApiGetFinance(new Date(0), new Date()).then(x=>{
+        ApiGetFinance().then(x=>{
             if(x.status == 200){
                 let net = 0;
                
@@ -266,7 +266,7 @@ function FetchList(props){
 
         //Query Each
         for(const i in queryData){    
-            ApiGetFinance(queryData[i].dateFrom, queryData[i].dateTo).then(x=>{
+            ApiGetFinance({dateFrom:queryData[i].dateFrom, dateTo:queryData[i].dateTo}).then(x=>{
                 if(x.status == 200){
                     const name = `${transformDate(queryData[i].dateFrom, "simple-named")} - ${transformDate(queryData[i].dateTo, "simple-named")}`;
                     const data = convertIntoList( x.data, name );
@@ -594,8 +594,7 @@ function ItemDsiplayer(props){
         return <>
         <div className=" relative rounded p-4 bg-zinc-900/25" style={{flexBasis: "1050px"}}>
             <h1 className=" font-semibold md:text-xl sm:text-base text-xs tracking-tighter text-zinc-600">{title}</h1>
-
-            <div className=" px-3 my-1 bg-zinc-900/75 rounded-full w-fit text-xs text-zinc-300"> Empty </div>
+            <SmallRoundedContent>Empty</SmallRoundedContent>
         </div>
         </>
     }
@@ -691,7 +690,7 @@ function DisplayListFrom(props){
     const { list, total } = props;
 
     if(list.length < 1){ //return and skip other logic if the list is actually empty;
-        return <small className=" px-3 bg-zinc-900/75 rounded-full w-fit text-xs text-zinc-300"> Empty </small>
+        return <SmallRoundedContent>Empty</SmallRoundedContent>
     }
 
     //Make A Controllable Reference of List
@@ -731,9 +730,7 @@ function DisplayListFrom(props){
             </Fragment>
         })}
         {loadCount < removeDecimal((originalLength-1)/loadThreshold) ? <>
-            <small className=" px-3 my-1 bg-zinc-900/75 hover:bg-zinc-800 rounded-full w-fit text-xs text-zinc-300 cursor-pointer" onClick={()=>{setLoadCount(prev=>prev+1)}} > 
-                Load More 
-            </small>
+            <SmallRoundedContent className="cursor-pointer hover:bg-zinc-800" onClick={()=>{setLoadCount(prev=>prev+1)}}>Load More</SmallRoundedContent>
         </> : ""}
     </>
 }

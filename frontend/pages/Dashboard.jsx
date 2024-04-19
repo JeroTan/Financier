@@ -49,6 +49,16 @@ export function RoundedContent(props){
         {children}
     </div>
 }
+export function SmallRoundedContent(props){
+    return <small className=" px-3 pb-[1px] bg-zinc-900/75 rounded-full w-fit text-xs text-zinc-300" {...props} > {props.children} </small>
+}
+export function SmallRoundedContentGreen(props){
+    return <small className=" px-3 pb-[1px] bg-green-700 rounded-full w-fit text-xs text-zinc-300" {...props} > {props.children} </small>
+}
+export function SmallRoundedContentYellow(props){
+    return <small className=" px-3 pb-[1px] bg-yellow-600 rounded-full w-fit text-xs text-zinc-300" {...props} > {props.children} </small>
+}
+
 export function CurveEdgeContent(props){
     const children = props.children;
     const className = props.className;
@@ -230,3 +240,4 @@ export function DropDown(props){
     </>
 
 }
+

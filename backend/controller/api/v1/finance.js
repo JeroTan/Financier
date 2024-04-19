@@ -45,8 +45,8 @@ export const Finance = {
     },
 
     get: (req, res)=>{
-        const {dateFrom, dateTo, search, amountFrom, amountTo, type, sortName, sortAmount } = req.query;
-        const valInst = generateValidateInstance(6);
+        const {dateFrom, dateTo, search, amountFrom, amountTo, type, sortName, sortAmount, load } = req.query;
+        const valInst = generateValidateInstance(9);
         const accountId = tokenRead(req.token).id;
         
         valInst[0].addInput(dateFrom).addField("dateFrom")
@@ -65,6 +65,8 @@ export const Finance = {
             .required().string().match(["asc", "desc"]);
         valInst[7].addInput(sortAmount).addField("sortAmount")
             .required().string().match(["asc", "desc"]);
+        valInst[8].addInput(load).addField("load")
+            .required().number().min(1);
 
         (async ()=>{
             //prepare DB
@@ -76,36 +78,46 @@ export const Finance = {
             querying.whereBetween("time", [ transformDate(dateFromFinal, "iso"), transformDate(dateToFinal, "iso")]);
 
             //Search
-            if(await valInst[2].validate())
+            if(await valInst[2].validate() === true)
                 querying.whereRaw("LOWER(amountFrom) LIKE ?", [`%${search.toLowerCase()}%`]);
 
             //AmountFrom & AmountTo
-            if(await valInst[3].validate()){
+            if(await valInst[3].validate() === true){
                 const splitNum = separateNumber(amountFrom);
                 querying.where("amountWhole", ">=", splitNum.whole);
             }
-            if(await valInst[4].validate()){
+            if(await valInst[4].validate() === true){
                 const splitNum = separateNumber(amountTo);
                 querying.where("amountWhole", "<=", splitNum.whole);
             }
 
             //Type &
-            if(await valInst[5].validate())
+            if(await valInst[5].validate() === true)
                 querying.where({amountSign:type==="expense"});
             
             
             //Ordering of AmountFrom
-            if(await valInst[6].validate())
+            if(await valInst[6].validate() === true)
                 querying.orderBy("amountFrom", sortName);
 
             //Ordering of Amount
-            if(await valInst[7].validate()){
+            if(await valInst[7].validate() === true){
                 querying.orderBy("amountWhole", sortAmount);
                 querying.orderBy("amountDecimal", sortAmount);
             }
             
-            const result = await querying;
+            //Only Go here if requesting for pagination
+            if(await valInst[8].validate() === true){
+                const dataToSend = await querying.limit(25).offset( load );
+                const nextDataToSend = await querying.limit(25).offset( load+1 );
+                return res.status(200).json({
+                    list:dataToSend,
+                    next: nextDataToSend.length > 0,
+                })
 
+            }
+
+            const result = await querying;
             res.status(200).json(result);
         })();
     },

@@ -38,21 +38,26 @@ export function PopComponent(){
             dialogRef.current.close();
     }, [isOpen]);
 
-    if(customDialog){
-        return customDialog;
-    }
-
     //functionality
     const closeThisPop = useCallback((e)=>{
         gConfigCast({pop:"close"});
     }, []);
 
-
     return <dialog ref={dialogRef} className="my-dialog " style={{width: width}} onClick={(e)=>{
         if(!backdropTrigger)
             return;
-        if( !(e.target === dialogRef.current) )
+
+        const dialogBound = e.target.getBoundingClientRect();
+        if(
+            !(dialogBound.left > e.clientX ||
+            dialogBound.right < e.clientX ||
+            dialogBound.top > e.clientY ||
+            dialogBound.bottom < e.clientY)
+        ){
             return;
+        }
+        // if( !(e.target === dialogRef.current) )
+        //     return;
         
         if(!backdropTriggerCallback){
             closeThisPop();
@@ -61,67 +66,117 @@ export function PopComponent(){
         backdropTriggerCallback(closeThisPop);
     }}>
         {closeButton?<>
-        <div className="flex justify-end">
-            <div className="cursor-pointer hover:scale-110 delay-75 fill-zinc-600 hover:fill-zinc-500" 
-            onClick={()=>{
-                if(!closeButtonCallback){
-                    closeThisPop();
-                    return;
-                }
-                closeButtonCallback(closeThisPop);
-                
-            }}>
-                <Icon name="close" outClass="w-5 h-5" />
-            </div>
-        </div>
-        </>:""}
-        {icon?<>
-        <div className="flex w-full justify-center mt-1">
-            <Icon name={icon} inClass={`${iconColor} `} outClass={`w-24 h-24 ${iconAnimate}`} />
-        </div>
-        </>:""}
-        {title?<>
-        <div className="flex w-full justify-center mt-2">
-            <h1 className={`my-big-text`}>{title}</h1>
-        </div>
-        </>:""}
-        {message?<>
-        <div className="flex w-full justify-center mt-1">
-            <p className={`text-zinc-500`}>{message}</p>
-        </div>
-        </>:""}
-        {acceptButton || rejectButton?<>
-        <div className="flex w-full justify-center gap-5 mt-8 flex-wrap">
-            {acceptButton?<>
-                <button className="my-main-btn-big" onClick={()=>{
-                    if(!acceptButtonCallback){
+            <div className="flex justify-end">
+                <div className="cursor-pointer hover:scale-110 delay-75 fill-zinc-600 hover:fill-zinc-500" 
+                onClick={()=>{
+                    if(!closeButtonCallback){
                         closeThisPop();
                         return;
                     }
-                    acceptButtonCallback(closeThisPop);
-                }}>
-                    {acceptButtonText}
-                </button>
-            </>:""}
-            {rejectButton?<>
-                <button className="my-main-btn-outline-big" onClick={()=>{
-                    if(!rejectButtonCallback){
-                        closeThisPop();
-                        return;
-                    }
-                    rejectButtonCallback(closeThisPop);
+                    closeButtonCallback(closeThisPop);
                     
                 }}>
-                    {rejectButtonText}
-                </button>
-            </>:""}
-        </div>
+                    <Icon name="close" outClass="w-5 h-5" />
+                </div>
+            </div>
         </>:""}
-        <div className="py-3"></div>
 
-        
+        {customDialog && typeof customDialog === "function" ? <>
+            {customDialog(closeThisPop)}
+        </>:<>
+            
+            {icon?<>
+                <div className="flex w-full justify-center mt-1">
+                    <Icon name={icon} inClass={`${iconColor} `} outClass={`w-24 h-24 ${iconAnimate}`} />
+                </div>
+            </>:""}
+            {title?<>
+                <div className="flex w-full justify-center mt-2">
+                    <h1 className={`my-big-text`}>{title}</h1>
+                </div>
+            </>:""}
+            {message?<>
+                <div className="flex w-full justify-center mt-1">
+                    <p className={`text-zinc-500`}>{message}</p>
+                </div>
+            </>:""}
+            {acceptButton || rejectButton?<>
+                <div className="flex w-full justify-center gap-5 mt-8 flex-wrap">
+                    {acceptButton?<>
+                        <button className="my-main-btn-big" onClick={()=>{
+                            if(!acceptButtonCallback){
+                                closeThisPop();
+                                return;
+                            }
+                            acceptButtonCallback(closeThisPop);
+                        }}>
+                            {acceptButtonText}
+                        </button>
+                    </>:""}
+                    {rejectButton?<>
+                        <button className="my-main-btn-outline-big" onClick={()=>{
+                            if(!rejectButtonCallback){
+                                closeThisPop();
+                                return;
+                            }
+                            rejectButtonCallback(closeThisPop);
+                            
+                        }}>
+                            {rejectButtonText}
+                        </button>
+                    </>:""}
+                </div>
+            </>:""}
+            <div className="py-3"></div>
+        </>}
+    
     </dialog>
 }
+
+//Export this to a reducer State
+export const popStructure = {
+    isOpen: false,
+    width: "450px",
+    icon: "check",
+    iconColor: "fill-green-600",
+    iconAnimate: "a-fade-in-scale",
+    title: "Title",
+    message: "Lorem Ipsum Dfss Mfde fjdkfss DFfjdfjf fsfsdfsdf",
+    acceptButton: true,
+    rejectButton: true,
+    acceptButtonText: "Okay",
+    rejectButtonText: "Cancel",
+    acceptButtonCallback: undefined,
+    rejectButtonCallback: undefined,
+    closeButton: true,
+    closeButtonCallback: undefined,
+    backdropTrigger: true,
+    backdropTriggerCallback: undefined,
+    customDialog: undefined,
+};
+//Export this to reducer dispatcher
+export function popUpdater(action, popUpData){
+    if(!action?.pop)
+        return popUpData;
+
+    popUpData = { ...popUpData };
+    switch(action.pop){
+        case "open":
+            popUpData.isOpen = true;
+        break;
+        case "close":
+            popUpData.isOpen = false;
+        break;
+        case "update":
+            Object.keys(action.val).forEach(key => {
+                popUpData[key] = action.val[key];
+            });
+            popUpData = {...popUpData};
+        break;
+    }
+
+    return popUpData;
+} 
 
 export class Pop{
     constructor(state, dispatch){
@@ -151,7 +206,7 @@ export class Pop{
         }
         //Shorteners
 
-        this.frame = {
+        this.frame = {//This will be the basis of types
             close:{
                 isOpen: false,
             },
@@ -190,6 +245,11 @@ export class Pop{
                 acceptButton: undefined,
                 rejectButton: undefined,
                 closeButton: undefined,
+            },
+            custom:{
+                ...basicContent,
+                backdropTrigger: true,
+                closeButton: true,
             }
         };
     }
@@ -244,8 +304,16 @@ export class Pop{
 
         return this;
     }
+    custom(callback){
+        this.dispatch({pop:"update", val:{ customDialog:callback, backdropTrigger: true, closeButton: true,}});
+        return this;
+    }
     close(){
         this.dispatch({pop:"close"});
+        return this;
+    }
+    open(){
+        this.dispatch({pop:"open"});
         return this;
     }
        
