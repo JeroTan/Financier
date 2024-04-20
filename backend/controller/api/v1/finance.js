@@ -94,7 +94,7 @@ export const Finance = {
             }
 
             //Type &
-            if(await valInst[5].validate() === true)
+            if(await valInst[5].validate() === true && type!=="all")
                 querying.where({amountSign:type==="expense"});
             
             
@@ -104,8 +104,7 @@ export const Finance = {
 
             //Ordering of Amount
             if(await valInst[7].validate() === true){
-                querying.orderBy("amountWhole", sortAmount);
-                querying.orderBy("amountDecimal", sortAmount);
+                querying.orderBy("amountWhole", sortAmount).orderBy("amountDecimal", sortAmount);
             }
             
             //Only Go here if requesting for pagination

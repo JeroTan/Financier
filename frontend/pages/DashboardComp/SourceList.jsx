@@ -1,6 +1,6 @@
-import { createContext, useCallback, useContext, useEffect, useReducer, useRef, useState } from "react"
+import { Fragment, createContext, useCallback, useContext, useEffect, useReducer, useRef, useState } from "react"
 import { GlobalConfigContext } from "../../utilities/GlobalConfig"
-import { CurveEdgeContent, DashboardTitle, RoundedContent } from "../Dashboard";
+import { CurveEdgeContent, DashboardTitle, RoundedContent, SmallRoundedContentGreen, SmallRoundedContentYellow } from "../Dashboard";
 import Icon from "../../utilities/Icon";
 import { Pop } from "../../utilities/Pop";
 import { ApiGetFinance, Fetcher } from "../../helper/API";
@@ -328,7 +328,7 @@ function FetchList(){
     }
 
     useEffect(()=>{
-        if(!firstTurnSkip)
+        if(firstTurnSkip)
             setFirstTurnSkip(false);
 
         viewerSetCast({fetching:true});
@@ -344,12 +344,13 @@ function FetchList(){
 
     }, [search, type, amountBetween.from, amountBetween.to, dateBetween.from, dateBetween.to]);
 
+    //Sort Name  //// MY BIGGEST MISTAKE ORDERING SHOULD HAVE A PRIORITY
     useEffect(()=>{
         if(firstTurnSkip)
             return;
 
         viewerSetCast({fetching:true});
-        fetcher.addParam({...dataToSend, limit:limit*(load+1)+1, offset:0}).addTodo((status, data)=>{
+        fetcher.addParam({...dataToSend, limit:limit*(load+1)+1, offset:0, sortAmount:false}).addTodo((status, data)=>{
             if(status != 200)
                 return;
             
@@ -357,7 +358,21 @@ function FetchList(){
             viewerSetCast({list:"update", val:convertList(data).filter( (x,i)=>i<(limit*(load+1)) ) }); //filter only to limit
         }).fetch();
 
-    }, [sortName, sortAmount]);
+    }, [sortName]);
+    useEffect(()=>{
+        if(firstTurnSkip)
+            return;
+
+        viewerSetCast({fetching:true});
+        fetcher.addParam({...dataToSend, limit:limit*(load+1)+1, offset:0, sortName:false}).addTodo((status, data)=>{
+            if(status != 200)
+                return;
+            
+            viewerSetCast({fetching:false});
+            viewerSetCast({list:"update", val:convertList(data).filter( (x,i)=>i<(limit*(load+1)) ) }); //filter only to limit
+        }).fetch();
+
+    }, [sortAmount]);
 
 
     useEffect(()=>{
@@ -397,18 +412,34 @@ function Loader(){
 function Lister(){
     //Global
     const [ viewerCast, viewerSetCast ] = useContext(ViewerContext);
-    const { fetching, list } = viewerCast;
+    const { fetching, list, view } = viewerCast;
 
 
     return <>
+    <div className="mt-4"></div>
     {!fetching ?<>
         {list && list.length > 0 ? <>
-        
+            <main className=" flex flex-wrap gap-2 justify-center">
+                {list.map(x=>{
+                    return <Fragment key={x.id}>
+                        {view == "compact"? <>
+                            <CompactItemView {...x} />
+                        </>:<>
+                            <WideItemView {...x} />
+                        </>}
+                    </Fragment>
+                })}
+                <div className="w-64 "></div>  
+                <div className="w-64 "></div>  
+                <div className="w-64 "></div>
+                <div className="w-64 "></div>  
+            </main>
+            
         </>: <>
             <div className="flex justify-center">
                 <CurveEdgeContent>
-                    <h1 className="py-4 text-3xl font-light text-zinc-500">
-                        Empty . . .
+                    <h1 className="py-4 text-3xl font-light text-zinc-300">
+                        This list is empty . . .
                     </h1>
                 </CurveEdgeContent> 
             </div>
@@ -422,17 +453,77 @@ function Lister(){
             </CurveEdgeContent> 
         </div>
     </>}
+    </>
+
+}
+
+function CompactItemView(props){
+    const {from, type, amount, description} = props;
+
+    return <>
+        <div className="relative">
+            <div className="w-64 rounded p-2 bg-zinc-900/25 hover:bg-zinc-900 group" >
+                <h1 className=" font-semibold">{from}</h1>
+                {type=="Expense"? <>
+                    <SmallRoundedContentYellow>Expense</SmallRoundedContentYellow>
+                </>:<>
+                    <SmallRoundedContentGreen >Earn</SmallRoundedContentGreen>
+                </>}
+                <div className="my-4"></div>
+                <div className=" flex  gap-1 justify-end ">
+                    <Icon name="cash" inClass=" fill-zinc-700" outClass=" w-5 h-5 self-start mt-[2px] shrink-0" />
+                    <h1 className="text-right truncate">{amount.toLocaleString('en')} </h1>
+                </div>
+                <div className={`  h-0 group-hover:h-auto  mt-3 hover:transition overflow-hidden`}>
+                    {description?<>
+                        <h2 className="font-semibold">Description</h2>
+                        <p className="text-zinc-400 ">{description}</p>
+                    </> :<>
+                        <h2 className=" italic text-zinc-400"> No Description. . .</h2>
+                    </>}
+                    
+                </div>
+            </div>  
+        </div>
+        
+    </>
+}
+
+function WideItemView(props){
+    const {from, type, amount, description} = props;
     
-    </>
+    //state 
+    const [openDescription, setOpenDescription] = useState(false);
 
-}
-
-function CompactItemView(){
     return <>
-    </>
-}
+        <div className=" flex flex-wrap gap-2 sm:gap-x-4 bg-zinc-900/25 hover:bg-zinc-900 p-2" style={{flexBasis: "90rem"}}>
+            <h1 className=" font-semibold">{from}</h1>
+            <div className="">
+                {type=="Expense"? <>
+                    <SmallRoundedContentYellow>Expense</SmallRoundedContentYellow>
+                </>:<>
+                    <SmallRoundedContentGreen >Earn</SmallRoundedContentGreen>
+                </>}
+            </div>
+            <div className=" flex  gap-1 mr-auto">
+                <Icon name="cash" inClass=" fill-zinc-700" outClass=" w-5 h-5 self-start mt-[2px] shrink-0" />
+                <h1 className="text-right truncate">{amount.toLocaleString('en')} </h1>
+            </div>
 
-function WideItemView(){
-    return <>
+            {description?<>
+                <div className=" flex gap-1 items-center cursor-pointer" onClick={()=>setOpenDescription(prev=>!prev)}>
+                    <span>Description</span>
+                    <Icon name={openDescription?"up":"down"} inClass=" fill-zinc-300" outClass=" w-4 h-4" />
+                </div>
+                {openDescription?<>
+                    <div className="w-full mt-2">
+                        <p className="text-zinc-400 ">{description}</p>
+                    </div>
+                </>:""}
+            </> :<>
+                <h2 className=" italic text-zinc-400"> No Description . . .</h2>
+            </>}
+
+        </div>
     </>
 }
