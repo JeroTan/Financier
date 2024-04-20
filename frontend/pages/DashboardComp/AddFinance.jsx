@@ -8,7 +8,7 @@ export default ()=>{
     //Global
     const [ gConfig, gConfigCast ] = useContext(GlobalConfigContext);
 
-    //Initiiate
+    //Initiate
     useEffect(()=>{
         gConfigCast({sideNav: "update", val: "addFinance"});
     }, []);

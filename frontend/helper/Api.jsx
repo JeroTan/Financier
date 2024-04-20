@@ -106,7 +106,49 @@ class ApiRequestPlate{
     
 }
 
+export class Fetcher{//ApiFetch that waits for it to finish and do try again if ever| param is array, api is the api in api caller and todo is the callback
+    constructor(api=undefined){
+        if(api && typeof api == "function")
+            this.api = api;
+        this.fetching = false;
+        this.cache = false;
+        this.param = false;
+        this.todo = ()=>false;
+    }
+    addParam(param){
+        this.param = arguments;
+        return this;
+    }
+    addApi(api){
+        this.api = api;
+        return this;
+    }
+    addTodo(todo){
+        this.todo = todo;
+        return this;
+    }
+    fetch(){
+        if(this.fetching)
+            return this;
 
+        this.cache = this.param; //put the param in cache in case there is a param for it to check
+        this.fetching = true;
+
+        const This = this;
+        this.api(...this.param).then(x=>{
+            
+            this.fetching = false;
+            if(  JSON.stringify(this.cache) !== JSON.stringify(this.param) )
+                This.fetch();
+            
+            this.todo(x.status, x.data); 
+        })
+        return this;
+    }
+
+
+
+}
 
 
 
@@ -157,7 +199,7 @@ export async function ApiAddFinance(data){
 }
 
 export async function ApiGetFinance(query ){
-    //dateFrom, dateTo, search, amountFrom, amountTo, type, sortName, sortAmount, load
+    //dateFrom, dateTo, search, amountFrom, amountTo, type, sortName, sortAmount, offset, limit
     const api = new ApiRequestPlate;
     return await api.url('finance').auth().params(query).get().request();
 }

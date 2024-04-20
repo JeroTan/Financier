@@ -45,8 +45,8 @@ export const Finance = {
     },
 
     get: (req, res)=>{
-        const {dateFrom, dateTo, search, amountFrom, amountTo, type, sortName, sortAmount, load } = req.query;
-        const valInst = generateValidateInstance(9);
+        const {dateFrom, dateTo, search, amountFrom, amountTo, type, sortName, sortAmount, limit, offset } = req.query;
+        const valInst = generateValidateInstance(10);
         const accountId = tokenRead(req.token).id;
         
         valInst[0].addInput(dateFrom).addField("dateFrom")
@@ -65,7 +65,9 @@ export const Finance = {
             .required().string().match(["asc", "desc"]);
         valInst[7].addInput(sortAmount).addField("sortAmount")
             .required().string().match(["asc", "desc"]);
-        valInst[8].addInput(load).addField("load")
+        valInst[8].addInput(limit).addField("limit")
+            .required().number().min(1);
+        valInst[9].addInput(offset).addField("offset")
             .required().number().min(1);
 
         (async ()=>{
@@ -108,15 +110,13 @@ export const Finance = {
             
             //Only Go here if requesting for pagination
             if(await valInst[8].validate() === true){
-                const dataToSend = await querying.limit(25).offset( load );
-                const nextDataToSend = await querying.limit(25).offset( load+1 );
-                return res.status(200).json({
-                    list:dataToSend,
-                    next: nextDataToSend.length > 0,
-                })
-
+                querying.limit(limit);
             }
 
+            if(await valInst[9].validate() === true){
+                querying.offset(offset);
+            }
+            
             const result = await querying;
             res.status(200).json(result);
         })();
@@ -142,13 +142,13 @@ export const Finance = {
             if(Object.keys(validateResult).length > 0)
                 return res.status(422).json(validateResult);
             else{
-                const {sign, whole, decimaal} = separateNumber(amount);
+                const {sign, whole, decimal} = separateNumber(amount);
 
 
                 await db("finance").insert({
                     accountId: accountId, 
                     amountWhole: whole, 
-                    amountDecimal: decimaal, 
+                    amountDecimal: decimal, 
                     amountSign: sign, 
                     amountFrom: amountFrom, 
                     description: description, 

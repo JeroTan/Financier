@@ -3,14 +3,14 @@ import { GlobalConfigContext } from "../../utilities/GlobalConfig"
 import { CurveEdgeContent, DashboardTitle, RoundedContent } from "../Dashboard";
 import Icon from "../../utilities/Icon";
 import { Pop } from "../../utilities/Pop";
-import { ApiGetFinance } from "../../helper/API";
+import { ApiGetFinance, Fetcher } from "../../helper/API";
 import { combineNumber } from "../../helper/Math";
 
 export default ()=>{
     //Global
     const [ gConfig, gConfigCast ] = useContext(GlobalConfigContext);
 
-    //Initiiate
+    //Initiate
     useEffect(()=>{
         gConfigCast({sideNav: "update", val:"sourceList"});
     }, []);
@@ -106,7 +106,7 @@ function Viewer(){
                 refState.load+=1;
             break;
             case "reset":
-                refState.load = 1;
+                refState.load = 0;
             break;
             case "yesNext":
                 refState.loadNext = true;
@@ -114,6 +114,10 @@ function Viewer(){
             case "noNext":
                 refState.loadNext = false;
             break;
+        }
+
+        if(typeof action?.fetching === "boolean"){
+            refState.fetching = action.fetching;
         }
         
 
@@ -129,6 +133,7 @@ function Viewer(){
         sortAmount: "asc",
         load: 1, //current number
         loadNext: false, //Check if there is a thing to load more;
+        fetching: true,
     });
     return <ViewerContext.Provider value={[viewerCast, viewerSetCast]}>
         <Filter />
@@ -141,10 +146,10 @@ function Viewer(){
 
 function Filter(){
     //Global
-    const [ gConfigCast, gConficSetCast ] = useContext(GlobalConfigContext);
+    const [ gConfigCast, gConfigSetCast ] = useContext(GlobalConfigContext);
     const [ viewerCast, viewerSetCast] = useContext(ViewerContext);
     const { view, dateBetween, amountBetween, type } = viewerCast;
-    const pop = new Pop(gConfigCast, gConficSetCast);
+    const pop = new Pop(gConfigCast, gConfigSetCast);
 
     //domReference
     const searchRef = useRef();
@@ -280,7 +285,7 @@ function Sorter(props){
     </>
 }
 
-//vvv---------- Coverter ------------//
+//vvv---------- Converter ------------//
 function convertList(list){
     const newList = [];
     for(const e of list){
@@ -293,135 +298,84 @@ function convertList(list){
     }
     return newList;
 }
-//^^^---------- Coverter ------------//
+//^^^---------- Converter ------------//
 
 function FetchList(){
     //Global
     const [ viewerCast, viewerSetCast ] = useContext(ViewerContext);
     const { search, dateBetween, amountBetween, type, sortName, sortAmount, load } = viewerCast;
+    const limit = 25;
+    const fetcher = new Fetcher(ApiGetFinance);
 
+    //Skip The Other Stuff when first fetch happen
     const [firstTurnSkip, setFirstTurnSkip] = useState(true);
 
-    //OldCopy = 
-    const oldData = useRef(viewerCast);
+    //Data To Send
+    const dataToSend = {
+        //Filterers
+        search: search,
+        amountFrom: amountBetween.from,
+        amountTo: amountBetween.to,
+        dateFrom: dateBetween.from,
+        dateTo: dateBetween.to,
+        type:type, 
+        //Sorting
+        sortName:sortName, 
+        sortAmount:sortAmount,
+        //Pagination
+        limit:limit,
+        offset:limit*load,
+    }
 
     useEffect(()=>{
-        //Reset List
-        viewerSetCast({list:"reset"});
-        viewerSetCast({load:"reset"});
-
-        ApiGetFinance({
-            type: type,
-            amountFrom: amountBetween.from,
-            amountTo: amountBetween.to,
-            dateFrom: dateBetween.from,
-            dateTo: dateBetween.to,
-            sortName: sortName,
-            sortAmount: sortAmount,
-            load: 1,
-        }).then(x=>{
+        if(!firstTurnSkip)
             setFirstTurnSkip(false);
-            if(x.status == 200){
-                const {list, next} = x.data;
-                viewerSetCast({list:"update", val: convertList(list)});
-                if(next){
-                    viewerSetCast({load:"yesNext"});
-                }else{
-                    viewerSetCast({load:"noNext"});
-                }
-            }
-        });
-        
-    }, [type, amountBetween.from, amountBetween.to, dateBetween.from, dateBetween.to]);
+
+        viewerSetCast({fetching:true});
+        fetcher.addParam({...dataToSend, limit:limit+1, offset:0}).addTodo((status, data)=>{ // the plus is there to check if there still next data;
+            if(status != 200)
+                return;
+
+            viewerSetCast({fetching:false});
+            viewerSetCast({load:"reset"});
+            viewerSetCast({list:"update", val:convertList(data).filter((x,i)=>i<limit) }); //filter only to limit since we add 1 on fetching
+            viewerSetCast({load: data.length < limit ? "noNext" : "yesNext"});
+        }).fetch();
+
+    }, [search, type, amountBetween.from, amountBetween.to, dateBetween.from, dateBetween.to]);
 
     useEffect(()=>{
         if(firstTurnSkip)
             return;
 
-        //Reset List
-        viewerSetCast({list:"reset"});
-
-        for(let loadIterate = 0; loadIterate < load; loadIterate++){
-            ApiGetFinance({
-                type: type,
-                amountFrom: amountBetween.from,
-                amountTo: amountBetween.to,
-                dateFrom: dateBetween.from,
-                dateTo: dateBetween.to,
-                sortName: sortName,
-                sortAmount: sortAmount,
-                load: loadIterate,
-            }).then(x=>{
-                if(x.status == 200){
-                    const {list} = x.data;
-                    viewerSetCast({list:"add", val: convertList(list)});
-                }
-            });
-        }
+        viewerSetCast({fetching:true});
+        fetcher.addParam({...dataToSend, limit:limit*(load+1)+1, offset:0}).addTodo((status, data)=>{
+            if(status != 200)
+                return;
+            
+            viewerSetCast({fetching:false});
+            viewerSetCast({list:"update", val:convertList(data).filter( (x,i)=>i<(limit*(load+1)) ) }); //filter only to limit
+        }).fetch();
 
     }, [sortName, sortAmount]);
 
-    useEffect(()=>{
-        if(firstTurnSkip)
-            return;
-
-        //Reset List
-        viewerSetCast({list:"reset"});
-        viewerSetCast({load:"reset"});
-
-        ApiGetFinance({
-            search: search,
-            type: type,
-            amountFrom: amountBetween.from,
-            amountTo: amountBetween.to,
-            dateFrom: dateBetween.from,
-            dateTo: dateBetween.to,
-            sortName: sortName,
-            sortAmount: sortAmount,
-            load: 1,
-        }).then(x=>{
-            if(x.status == 200){
-                const {list, next} = x.data;
-                viewerSetCast({list:"update", val: convertList(list)});
-                if(next){
-                    viewerSetCast({load:"yesNext"});
-                }else{
-                    viewerSetCast({load:"noNext"});
-                }
-            }
-        });
-     
-    }, [search]);
 
     useEffect(()=>{
         if(load <= 1) //Will not work if the load is equals to 1
             return;
 
-        ApiGetFinance({
-            search: search,
-            type: type,
-            amountFrom: amountBetween.from,
-            amountTo: amountBetween.to,
-            dateFrom: dateBetween.from,
-            dateTo: dateBetween.to,
-            sortName: sortName,
-            sortAmount: sortAmount,
-            load: load,
-        }).then(x=>{
-            if(x.status == 200){
-                const {list, next} = x.data;
-                viewerSetCast({list:"add", val: convertList(list)});
-                if(next){
-                    viewerSetCast({load:"yesNext"});
-                }else{
-                    viewerSetCast({load:"noNext"});
-                }
-            }
-        });
+        viewerSetCast({fetching:true});
+        fetcher.addParam({...dataToSend, limit:limit+1}).addTodo((status, data)=>{
+            if(status != 200)
+                return;
+
+            viewerSetCast({fetching:false});
+            viewerSetCast({list:"add", val:convertList(data).filter((x,i)=>i<limit) }); //filter only to limit since we add 1 on fetching
+            viewerSetCast({load: data.length < limit ? "noNext" : "yesNext"});
+        }).fetch();
         
     }, [load]);
 
-    return ""
 }
 
 function Loader(){
@@ -441,7 +395,34 @@ function Loader(){
 }
 
 function Lister(){
+    //Global
+    const [ viewerCast, viewerSetCast ] = useContext(ViewerContext);
+    const { fetching, list } = viewerCast;
+
+
     return <>
+    {!fetching ?<>
+        {list && list.length > 0 ? <>
+        
+        </>: <>
+            <div className="flex justify-center">
+                <CurveEdgeContent>
+                    <h1 className="py-4 text-3xl font-light text-zinc-500">
+                        Empty . . .
+                    </h1>
+                </CurveEdgeContent> 
+            </div>
+        </>}
+    </>:<>
+        <div className="flex justify-center">
+            <CurveEdgeContent>
+                <h1 className="py-4 text-3xl font-light text-zinc-500 animate-pulse">
+                    Fetching Data . . .
+                </h1>
+            </CurveEdgeContent> 
+        </div>
+    </>}
+    
     </>
 
 }
