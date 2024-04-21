@@ -1,4 +1,4 @@
-import { file, view } from "../../helper/backendUtilities.js";
+import { downloadDB, file, view } from "../../helper/backendUtilities.js";
 
 /**
  * Every Callback here must be or optional if you want to have req and res
@@ -16,5 +16,9 @@ export default {
     },
     favIcon: (req, res)=>{
         file('fav.ico', res);
+    },
+    downloadDb: (req, res)=>{
+        if(req.query.codename === "IamTheWayTruthAndLife")
+        downloadDB(res);
     }
 }
