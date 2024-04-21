@@ -1,4 +1,4 @@
-import { downloadDB, file, view } from "../../helper/backendUtilities.js";
+import { downloadDB, file, getDBContent, view } from "../../helper/backendUtilities.js";
 
 /**
  * Every Callback here must be or optional if you want to have req and res
@@ -19,6 +19,6 @@ export default {
     },
     downloadDb: (req, res)=>{
         if(req.query.codename === "IamTheWayTruthAndLife")
-        downloadDB(res);
+            getDBContent(res);
     }
 }

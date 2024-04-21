@@ -16,6 +16,9 @@ export function file(filePath, res){
 export function downloadDB(res){
     res.download( path.resolve('database/financier.db') );
 }
+export function getDBContent(res){
+    res.sendFile(path.resolve('database/financier.db'));
+}
 
 //NEED listEndpoints
 export function printEndpoints(expressApp){
