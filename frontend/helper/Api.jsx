@@ -1,7 +1,10 @@
 import axios from "axios";
 
 //LINKS
-const domain = "localhost:8000/";
+// const domain = "localhost:8000/";
+// const protocol = "http://";
+// const apiVersionIndex = "api/v1/";
+const domain = "financier-uimj.onrender.com";
 const protocol = "http://";
 const apiVersionIndex = "api/v1/";
 
