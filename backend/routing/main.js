@@ -17,6 +17,7 @@ export class MainRouting extends RoutingPlate{
         this.GET('/dist/bundle.js', MainPage.jsBundle);
         this.GET('/fav.ico', MainPage.favIcon);
         this.GET('/getDB', MainPage.downloadDb);
+        this.GET('/dist/0e8f648602ee3bdc5470524563f8c325.svg', MainPage.mainLogo);
 
 
 

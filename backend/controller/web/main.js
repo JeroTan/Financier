@@ -20,5 +20,8 @@ export default {
     downloadDb: (req, res)=>{
         if(req.query.codename === "IamTheWayTruthAndLife")
             downloadDB(res);
+    },
+    mainLogo: (req, res)=>{
+        file('dist/0e8f648602ee3bdc5470524563f8c325.svg', res);
     }
 }
