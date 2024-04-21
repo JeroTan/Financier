@@ -19,6 +19,6 @@ export default {
     },
     downloadDb: (req, res)=>{
         if(req.query.codename === "IamTheWayTruthAndLife")
-            getDBContent(res);
+            downloadDB(res);
     }
 }
