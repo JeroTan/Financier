@@ -10,6 +10,9 @@ export function view(filePath, res){
         res.send(data);
     });
 }
+export function file(filePath, res){
+    res.sendFile(path.resolve(intialPath+filePath));
+}
 
 //NEED listEndpoints
 export function printEndpoints(expressApp){

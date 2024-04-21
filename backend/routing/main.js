@@ -14,6 +14,8 @@ export class MainRouting extends RoutingPlate{
     routes(){
         //WEB RESOURCES
         this.GET('/',  MainPage.index);
+        this.GET('/dist/bundle.js', MainPage.jsBundle);
+        this.GET('/fav.ico', MainPage.favIcon);
 
 
 
