@@ -12,13 +12,14 @@ function ExpressAppInitiator(){
     const app = express();
     const CORS = {
         origin: function (origin, callback) {
+            console.log(origin);
             const allowedOrigin = ["http://localhost:8000", "http://localhost:8001", "https://financier-uimj.onrender.com"];
             if( allowedOrigin.includes(origin) ){
                 return callback(null, origin);
             }
             return callback(null, false);
           },
-        creadentials: true,
+        credentials: true,
         optionsSuccessStatus: 200,
     }
    

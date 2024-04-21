@@ -37,7 +37,7 @@ class ApiRequestPlate{
             headers:{
                 "Accept": "application/json",
                 'Access-Control-Allow-Credentials': 'true',
-                "Access-Control-Allow-Origin": "<origin>",
+                "Access-Control-Allow-Origin": "*",
                 "Content-Type": "application/json",
         }};
         this.Inst = axios.create(this.Config);
