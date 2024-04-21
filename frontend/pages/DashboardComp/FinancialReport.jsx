@@ -150,7 +150,7 @@ function Header(props){
             </RoundedContent>
             <RoundedContent>
                 <h1 className=" text-yellow-500 font-semibold">Net Money: </h1>
-                <span className="text-zinc-400 font-normal">{netMoney}</span>
+                <span className="text-zinc-400 font-normal">{netMoney.toLocaleString('en')}</span>
             </RoundedContent>
             
         </div>
@@ -169,7 +169,7 @@ function Filter(props){
         Daily: ["Each"],
         Weekly: ["12 Hours", "Days"],
         Monthly: ["Days", "Weeks"],
-        Anually: ["Months", "2 Months", "3 Months", "4 Months", "6 Months"],
+        Annually: ["Months", "2 Months", "3 Months", "4 Months", "6 Months"],
         Decades: ["Years", "2 Years", "5 Years"],
     }), []);
 
@@ -257,7 +257,7 @@ function FetchList(props){
         changeList, addToList,
     } = props;
 
-    //FetchOnceOrDependciesChanged
+    //Fetch Once Or Dependencies Changed
     useEffect(()=>{
         const queryData = convertFilterToDate(report, filterType, getJumpToDate(report, dateJump) );
 
@@ -306,7 +306,7 @@ function getDateToJump(report, date){//This wil be the left side and right side 
         case "Monthly":{
             return today.gapMonth(date);
         }
-        case "Anually":{
+        case "Annually":{
             return today.gapYear(date);
         }
         case "Decades":{
@@ -337,7 +337,7 @@ function getJumpToDate(report, jump){ //same as the above function but in revers
             today.prevMonth( jump , "max");
             break;
         }
-        case "Anually":{
+        case "Annually":{
             today.normalize("Month", "max");
             today.prevYear( jump );
             break;
@@ -399,7 +399,7 @@ function convertFilterToDate(report, filter , date = undefined){ //This wil be t
             // const minutesToReduce =  filter == "12 Hours" ? 60*12 : 60*24;  //60 Minutes * n Hours;
 
             for(let i = 0; i < length; i++){
-                //Fetch IntialData;
+                //Fetch Initial Data;
                 const query = {};
                 query.dateTo = transformDate(dateToday, "iso");
 
@@ -451,7 +451,7 @@ function convertFilterToDate(report, filter , date = undefined){ //This wil be t
             }
             break;
         }   
-        case "Anually":{
+        case "Annually":{
             const translate = {
                 "Months": 1,
                 "2 Months": 2,
@@ -555,17 +555,17 @@ function Lister(props){
                 let measurement = 100;
                 if(report == "Monthly")
                     measurement = 200;
-                else if(report == "Anually")
-                    measurement = 1000;
+                else if(report == "Annually")
+                    measurement = 5000;
                 else if(report == "Decades")
-                    measurement = 10000;
+                    measurement = 100000;
 
                 return <Fragment key={i} >
                     <div  className=" flex justify-center">
                         {x == undefined ? <>
                             <div className=" rounded p-4 bg-zinc-900/50" style={{flexBasis: "1000px"}}>. . .</div>  
                         </> :<>
-                        <ItemDsiplayer data={x} currency={currencyValue.current} measurement={measurement} />
+                        <ItemDisplayer data={x} currency={currencyValue.current} measurement={measurement} />
                         </>}
                         
                     </div>
@@ -584,7 +584,7 @@ function Lister(props){
     </>
 }
 
-function ItemDsiplayer(props){
+function ItemDisplayer(props){
     const data = props.data;
     const currency = props.currency ?? 1;
     const {title, totalExpense, totalEarn, listOfFrom} = data;
@@ -659,8 +659,8 @@ function ItemDsiplayer(props){
 
             <div className="flex flex-wrap gap-2 justify-between">
                 <div className="flex flex-col">
-                    <small className=" text-zinc-400">Expenses: <span className=" text-zinc-300 font-bold">{totalExpense}</span></small>
-                    <small className=" text-zinc-400">Earnings: <span className=" text-zinc-300 font-bold">{totalEarn}</span></small>
+                    <small className=" text-zinc-400">Expenses: <span className=" text-zinc-300 font-bold">{totalExpense.toLocaleString('en')}</span></small>
+                    <small className=" text-zinc-400">Earnings: <span className=" text-zinc-300 font-bold">{totalEarn.toLocaleString('en')}</span></small>
                 </div>
                 <div className=" basis-96 bg-zinc-700/50 rounded overflow-hidden">
                     <div className={`w-full cursor-pointer p-2 rounded flex justify-between items-center ${openListOfFrom ? "bg-zinc-800 hover:bg-zinc-800/50":"bg-zinc-800/75 hover:bg-zinc-700"} `} onClick={()=>setOpenListOfFrom(prev=>!prev)}>

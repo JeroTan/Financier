@@ -40,6 +40,7 @@ export function GoogleSignIn(){
                 //Need new Username;
                 auth.storeToken(res.data.token);
                 navigation('/username');
+                pop.close();
             });
         }}
         onError={() => {

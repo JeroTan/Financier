@@ -204,8 +204,23 @@ export async function ApiGetFinance(query ){
     return await api.url('finance').auth().params(query).get().request();
 }
 
+export async function ApiDeleteFinance(id){
+    const api = new ApiRequestPlate;
+    return await api.url('finance').auth().params({id:id}).delete().request();
+}
 
 export async function ApiGetCurrency(){
     const api = new ApiRequestPlate;
     return await api.url('currency').auth().get().request();
+}
+
+
+export async function ApiUsername(){
+    const api = new ApiRequestPlate;
+    return await api.url('username').auth().get().request();
+}
+
+export async function ApiChangePassword(data){
+    const api = new ApiRequestPlate;
+    return await api.url("changePassword").auth().data(data).post().request();
 }

@@ -158,6 +158,15 @@ export const Finance = {
         })();
     },
 
+    delete: (req, res)=>{
+        const {id} = req.query;
+        
+        (async()=>{
+            await db("finance").where({id:id}).del();
+            res.sendStatus(200);
+        })();
+    },
+
     getCurrency: (req, res)=>{
         const accountId = tokenRead(req.token).id;
 

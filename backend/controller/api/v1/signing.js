@@ -135,7 +135,7 @@ export default {
         const {username} = req.body;
 
         const valInst = new Validation(username, "username");
-        valInst.addActualField("username").required().regex(/^[a-zA-Z0-9\,\.\-\_\"\'\s]*$/).unique("account,username").max(32);
+        valInst.required().regex(/^[a-zA-Z0-9\,\.\-\_\"\'\s]*$/).unique("account,username").max(32);
 
         (async()=>{
             const result = await valInst.validate();
@@ -146,6 +146,35 @@ export default {
                 await db("account").where({id:id}).update({username: username});
                 return res.sendStatus(200);
             }
+        })();
+
+    },
+
+    changePassword: (req, res)=>{
+        const password = req.body;
+        const accountId = tokenRead(req.token).id;
+
+        const valInst = generateValidateInstance(3);
+        valInst[0].addInput(password.old).addField("old").addNameAttribute("Current Password")
+            .required().max(128);
+        valInst[1].addInput(password.new).addField("new").addNameAttribute("New Password")
+            .required().min(8).max(128);
+        valInst[2].addInput(password.confirm).addField("confirm").addNameAttribute("Confirm Password")
+            .required().same([valInst[1]]);
+
+        (async()=>{
+            const validateResult =  await multiValidate(valInst);
+            if(Object.keys(validateResult).length > 0)
+                return res.status(422).json(validateResult);
+            
+            const account = await db("account").where({id: accountId}).first();
+            const verifyOldPassword = await checkHash(password.old, account.password);
+            if(!verifyOldPassword)
+                return res.status(422).json({old:" Incorrect Current Password"});
+
+            await db("account").where({id: accountId}).update({password: await hashData(password.old)});
+            return res.sendStatus(200);
+
         })();
 
     },

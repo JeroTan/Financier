@@ -3,7 +3,7 @@ import { GlobalConfigContext } from "../../utilities/GlobalConfig"
 import { CurveEdgeContent, DashboardTitle, RoundedContent, SmallRoundedContentGreen, SmallRoundedContentYellow } from "../Dashboard";
 import Icon from "../../utilities/Icon";
 import { Pop } from "../../utilities/Pop";
-import { ApiGetFinance, Fetcher } from "../../helper/API";
+import { ApiDeleteFinance, ApiGetFinance, Fetcher } from "../../helper/API";
 import { combineNumber } from "../../helper/Math";
 
 export default ()=>{
@@ -116,6 +116,15 @@ function Viewer(){
             break;
         }
 
+        switch(action?.refresh){
+            case "start":
+                refState.refresh = true;
+            break;
+            case "stop":
+                refState.refresh = false;
+            break;
+        }
+
         if(typeof action?.fetching === "boolean"){
             refState.fetching = action.fetching;
         }
@@ -134,6 +143,7 @@ function Viewer(){
         load: 1, //current number
         loadNext: false, //Check if there is a thing to load more;
         fetching: true,
+        refresh: false,
     });
     return <ViewerContext.Provider value={[viewerCast, viewerSetCast]}>
         <Filter />
@@ -225,7 +235,7 @@ function Filter(){
                 <button className="bg-zinc-600 hover:bg-zinc-500 px-2 rounded mt-4" onClick={resetFilter}>Reset</button>
             </>
         });
-    }, [amountBetween, dateBetween, type]);
+    }, [amountBetween.to, amountBetween.from, dateBetween.to, dateBetween.from, type]);
     
 
     return <>
@@ -303,7 +313,7 @@ function convertList(list){
 function FetchList(){
     //Global
     const [ viewerCast, viewerSetCast ] = useContext(ViewerContext);
-    const { search, dateBetween, amountBetween, type, sortName, sortAmount, load } = viewerCast;
+    const { search, dateBetween, amountBetween, type, sortName, sortAmount, load, refresh } = viewerCast;
     const limit = 25;
     const fetcher = new Fetcher(ApiGetFinance);
 
@@ -335,14 +345,15 @@ function FetchList(){
         fetcher.addParam({...dataToSend, limit:limit+1, offset:0}).addTodo((status, data)=>{ // the plus is there to check if there still next data;
             if(status != 200)
                 return;
-
+            if(refresh)
+                viewerSetCast({refresh:"stop"});
             viewerSetCast({fetching:false});
             viewerSetCast({load:"reset"});
             viewerSetCast({list:"update", val:convertList(data).filter((x,i)=>i<limit) }); //filter only to limit since we add 1 on fetching
             viewerSetCast({load: data.length < limit ? "noNext" : "yesNext"});
         }).fetch();
 
-    }, [search, type, amountBetween.from, amountBetween.to, dateBetween.from, dateBetween.to]);
+    }, [search, type, amountBetween.from, amountBetween.to, dateBetween.from, dateBetween.to, refresh]);
 
     //Sort Name  //// MY BIGGEST MISTAKE ORDERING SHOULD HAVE A PRIORITY
     useEffect(()=>{
@@ -458,11 +469,31 @@ function Lister(){
 }
 
 function CompactItemView(props){
-    const {from, type, amount, description} = props;
+    //Global
+    const [ gConfigCast, gConfigSetCast ] = useContext(GlobalConfigContext);
+    const [ viewerCast, viewerSetCast ] = useContext(ViewerContext);
+
+    const {id, from, type, amount, description} = props;
+
+    const [openOption, setOpenOption] = useState(false);
+
+    //Functions
+    function deleteItem(e){
+        const pop = new Pop(gConfigCast, gConfigSetCast);
+        pop.type("warning").title("Deletion Warning").message(`Do you want to delete this "${from}"?`).callback((close)=>{
+            pop.type("loading").message("Deleting. . .")
+            ApiDeleteFinance(id).then(({status, data})=>{
+                if(status == 200){
+                    viewerSetCast({refresh:"start"});
+                    pop.type("success").title("Success").message(`Item is deleted successfully.`);
+                } 
+            });
+        })
+    }
 
     return <>
         <div className="relative">
-            <div className="w-64 rounded p-2 bg-zinc-900/25 hover:bg-zinc-900 group" >
+            <div className="w-64 rounded p-2 bg-zinc-900/25 hover:bg-zinc-900 group" onClick={()=>setOpenOption(prev=>!prev)}>
                 <h1 className=" font-semibold">{from}</h1>
                 {type=="Expense"? <>
                     <SmallRoundedContentYellow>Expense</SmallRoundedContentYellow>
@@ -483,17 +514,43 @@ function CompactItemView(props){
                     </>}
                     
                 </div>
-            </div>  
+            </div>
+            {openOption ? <>
+                <div className=" absolute right-0 bottom-full h-5 w-max z-10">
+                    <CurveEdgeContent className=" hover:bg-zinc-700 cursor-pointer mb-1" onClick={deleteItem}>
+                        <Icon name="trash" inClass=" fill-red-500" outClass=" w-5 h-5" />
+                    </CurveEdgeContent>
+                </div>
+            </>:<>
+            </>}
         </div>
         
     </>
 }
 
 function WideItemView(props){
-    const {from, type, amount, description} = props;
+    //Global
+    const [ gConfigCast, gConfigSetCast ] = useContext(GlobalConfigContext);
+    const [ viewerCast, viewerSetCast ] = useContext(ViewerContext);
+    
+    const {id, from, type, amount, description} = props;
     
     //state 
     const [openDescription, setOpenDescription] = useState(false);
+
+    //Functions
+    function deleteItem(e){
+        const pop = new Pop(gConfigCast, gConfigSetCast);
+        pop.type("warning").title("Deletion Warning").message(`Do you want to delete this "${from}"?`).callback((close)=>{
+            pop.type("loading").message("Deleting. . .")
+            ApiDeleteFinance(id).then(({status, data})=>{
+                if(status == 200){
+                    viewerSetCast({refresh:"start"});
+                    pop.type("success").title("Success").message(`Item is deleted successfully.`);
+                }
+            });
+        })
+    }
 
     return <>
         <div className=" flex flex-wrap gap-2 sm:gap-x-4 bg-zinc-900/25 hover:bg-zinc-900 p-2" style={{flexBasis: "90rem"}}>
@@ -509,6 +566,10 @@ function WideItemView(props){
                 <Icon name="cash" inClass=" fill-zinc-700" outClass=" w-5 h-5 self-start mt-[2px] shrink-0" />
                 <h1 className="text-right truncate">{amount.toLocaleString('en')} </h1>
             </div>
+
+            <CurveEdgeContent className=" hover:bg-zinc-700 cursor-pointer " onClick={deleteItem}>
+                <Icon name="trash" inClass=" fill-red-500" outClass=" w-5 h-5" />
+            </CurveEdgeContent>
 
             {description?<>
                 <div className=" flex gap-1 items-center cursor-pointer" onClick={()=>setOpenDescription(prev=>!prev)}>

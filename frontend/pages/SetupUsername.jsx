@@ -50,9 +50,7 @@ function UsernameForm(){
                 return;
             }else if(x.status == 422){
                 pop.type("close");
-                Object.keys(x.data).forEach(key=>{
-                    dataCast({run:"updateError", key:key, val:x.data[key]});
-                });
+                dataCast({run:"updateError", key:"username", val:x.data});
                 return;
             }
             return pop.type("error").title("Login Failed").message("Something happened on our end! Please try again later.").button(true, false);
