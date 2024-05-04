@@ -1,11 +1,21 @@
 //Define Database here
 import knex from "knex";
 import path from "path";
-import { anyToArr } from "../helper/parseArguments.js";
+import 'dotenv/config';
+
+
+
 export const db = knex({
     client: 'sqlite3',
     connection: {
-        filename: path.resolve("database/financier.db"),
+        connectionString: process.env.DATABASE_URL,
+        host: process.env.DB_HOST,
+        port: process.env.DB_PORT,
+        user: process.env.DB_USER,
+        database: process.env.DB_DATABASE,
+        password: process.env.DB_PASSWORD,
+        ssl: process.env.DB_SSL,
+        // filename: path.resolve("database/financier.db"),
     },
     useNullAsDefault: true
 });
