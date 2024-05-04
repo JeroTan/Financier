@@ -4,6 +4,8 @@ import { financeTable } from "./_03_createFinance.js";
 
 //Import and call the migrations here
 let tables = [
+    accountTable,
+    loginTokenTable,
     financeTable,
 ];
 

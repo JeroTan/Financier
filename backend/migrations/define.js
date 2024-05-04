@@ -3,10 +3,8 @@ import knex from "knex";
 import path from "path";
 import 'dotenv/config';
 
-
-
 export const db = knex({
-    client: 'sqlite3',
+    client: 'mysql2',
     connection: {
         connectionString: process.env.DATABASE_URL,
         host: process.env.DB_HOST,
@@ -14,7 +12,7 @@ export const db = knex({
         user: process.env.DB_USER,
         database: process.env.DB_DATABASE,
         password: process.env.DB_PASSWORD,
-        ssl: process.env.DB_SSL,
+        ssl: process.env.DB_SSL == true,
         // filename: path.resolve("database/financier.db"),
     },
     useNullAsDefault: true
